@@ -55,6 +55,8 @@ const init = () => gltfLoader.load('assets/models/guard.glb')
 				});
 				model.route = route;
 				model.direction = 1;
+				model.mode = 'idle';
+				model.frame = 0;
 				return {model, mixer, acts, route};
 			}
 		);
@@ -66,27 +68,39 @@ const refresh = ({scene, guards, state}) => {
 	// console.log(guards);
 	guards.forEach(guard => {
 		// console.log(guard);
-		if (guard.model.position.distanceTo(new THREE.Vector3().fromArray(guard.model.route[
-			guard.model.direction
-		])) <= 0.12) {
-			guard.model.position.copy(new THREE.Vector3().fromArray(guard.model.route[
+		if (guard.model.mode === 'walk') {
+			if (guard.model.position.distanceTo(new THREE.Vector3().fromArray(guard.model.route[
 				guard.model.direction
-			]));
-			if (guard.model.direction < guard.model.route.length - 1) {
-				guard.model.direction++;
+			])) <= 0.12) {
+				guard.model.position.copy(new THREE.Vector3().fromArray(guard.model.route[
+					guard.model.direction
+				]));
+				if (guard.model.direction < guard.model.route.length - 1) {
+					guard.model.direction++;
+				} else {
+					guard.model.direction = 0;
+					guard.model.route = guard.model.route.reverse();
+					guard.model.mode = 'idle';
+				}
+				// guard.model.lookAt(new THREE.Vector3().fromArray(guard.model.route[guard.model.direction]));
 			} else {
-				guard.model.direction = 0;
-				guard.model.route = guard.model.route.reverse();
+				guard.model.lookAt(new THREE.Vector3().fromArray(guard.model.route[guard.model.direction]));
+				var direction = new THREE.Vector3();
+				guard.model.getWorldDirection(direction);
+				guard.model.position.add(direction.multiplyScalar(0.12));
 			}
-			guard.model.lookAt(new THREE.Vector3().fromArray(guard.model.route[guard.model.direction]));
+			guard.acts[1].setEffectiveWeight(1);
+			guard.acts[0].setEffectiveWeight(0);
 		} else {
-			guard.model.lookAt(new THREE.Vector3().fromArray(guard.model.route[guard.model.direction]));
-			var direction = new THREE.Vector3();
-			guard.model.getWorldDirection(direction);
-			guard.model.position.add(direction.multiplyScalar(0.12));
+			if (guard.model.frame <= 128) {
+				guard.model.frame++;
+			} else {
+				guard.model.frame = 0;
+				guard.model.mode = 'walk';
+			}
+			guard.acts[1].setEffectiveWeight(0);
+			guard.acts[0].setEffectiveWeight(1);
 		}
-		guard.acts[1].setEffectiveWeight(1);
-		guard.acts[0].setEffectiveWeight(0);
 		// console.log(character, mixer, acts);
 		if (guard.mixer) guard.mixer.update(mixerUpdateDelta);
 	});
