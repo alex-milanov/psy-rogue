@@ -20,7 +20,11 @@ let cameraAngle = {x: 45, y: 210};
 let mouse = false;
 
 const refresh = ({camera, state}) => {
-	const centerPos = new THREE.Vector3().fromArray([0, 0, 0]);
+	const centerPos = new THREE.Vector3().fromArray(
+		state.camera.followPlayer
+			? state.player.position
+			: [0, 0, 0]
+	);
 
 	if (state.viewport.mouse.down) {
 		cameraAngle = {
@@ -36,16 +40,16 @@ const refresh = ({camera, state}) => {
 		mouse = false;
 	}
 
-	camera.position.copy(new THREE.Vector3().fromArray([
+	camera.position.copy(centerPos.clone().add({
 		// x
-		Math.cos(degreeToRadiant(cameraAngle.x)) *
+		x: Math.cos(degreeToRadiant(cameraAngle.x)) *
 			Math.cos(degreeToRadiant(cameraAngle.y)) * state.camera.distance,
-		// y
+		y: // y
 		-Math.sin(degreeToRadiant(cameraAngle.y)) * state.camera.distance,
-		// z
+		z: // z
 		-Math.cos(degreeToRadiant(cameraAngle.y)) *
 			Math.sin(degreeToRadiant(cameraAngle.x)) * state.camera.distance
-	]));
+	}));
 
 	camera.aspect = state.viewport.screen.width / (state.viewport.screen.height);
 	camera.updateProjectionMatrix();

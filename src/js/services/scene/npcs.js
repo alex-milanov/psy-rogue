@@ -11,9 +11,9 @@ window.THREE = window.THREE || THREE;
 let clock = new THREE.Clock();
 
 const routes = [
-	[[-10, 0.2, -20], [10, 0.2, -20]],
-	[[20, 0.2, 0], [-20, 0.2, 0]],
-	[[-10, 0.2, 20], [10, 0.2, 20]]
+	[[-10, 0.2, -20], [20, 0.2, -20]],
+	[[0, 0.2, 0], [-30, 0.2, 0]],
+	[[-20, 0.2, 20], [10, 0.2, 20], [10, 0.2, 40]]
 ];
 
 const gltfLoader = require('../../util/three/loader/gltf.js');
@@ -66,7 +66,27 @@ const refresh = ({scene, guards, state}) => {
 	// console.log(guards);
 	guards.forEach(guard => {
 		// console.log(guard);
-		guard.acts[0].setEffectiveWeight(1);
+		if (guard.model.position.distanceTo(new THREE.Vector3().fromArray(guard.model.route[
+			guard.model.direction
+		])) <= 0.12) {
+			guard.model.position.copy(new THREE.Vector3().fromArray(guard.model.route[
+				guard.model.direction
+			]));
+			if (guard.model.direction < guard.model.route.length - 1) {
+				guard.model.direction++;
+			} else {
+				guard.model.direction = 0;
+				guard.model.route = guard.model.route.reverse();
+			}
+			guard.model.lookAt(new THREE.Vector3().fromArray(guard.model.route[guard.model.direction]));
+		} else {
+			guard.model.lookAt(new THREE.Vector3().fromArray(guard.model.route[guard.model.direction]));
+			var direction = new THREE.Vector3();
+			guard.model.getWorldDirection(direction);
+			guard.model.position.add(direction.multiplyScalar(0.12));
+		}
+		guard.acts[1].setEffectiveWeight(1);
+		guard.acts[0].setEffectiveWeight(0);
 		// console.log(character, mixer, acts);
 		if (guard.mixer) guard.mixer.update(mixerUpdateDelta);
 	});

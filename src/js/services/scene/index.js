@@ -78,7 +78,7 @@ const render = ({plane, scene, camera, renderer, state, character, mixer, acts, 
 		// plane.rotation.z += 0.001;
 	}
 	camera = _camera.refresh({camera, state});
-	_character.refresh({scene, character, mixer, acts, state});
+	_character.refresh({scene, character, mixer, acts, state, camera});
 	if (guards)
 		npcs.refresh({scene, guards, state});
 
@@ -133,12 +133,13 @@ let hook = ({state$, actions}) => {
 		.scan((sceneState, modify) => modify(sceneState), {});
 
 	subs.push(
-		$.combineLatest(
-			sceneState$,
-			state$,
-			time.frame(),
-			(sceneState, state, dt) => ({...sceneState, state})
-		)
+		time.frame()
+			.filter((dt, i) => i % 2 === 0)
+			.withLatestFrom(
+				sceneState$,
+				state$,
+				(dt, sceneState, state) => ({...sceneState, state})
+			)
 			.subscribe(render)
 	);
 

@@ -14,10 +14,11 @@ const initial = {
 			hOffset: -180,
 			v: 90,
 			vOffset: -80
-		}
+		},
+		followPlayer: false
 	},
 	player: {
-		position: [0, 0.2, 0],
+		position: [-20, 0.2, 50],
 		crouching: false,
 		combat: false
 	},

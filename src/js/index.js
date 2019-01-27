@@ -102,7 +102,7 @@ const getDirection = keys => ([
 ]);
 
 const getForce = keys =>
-	(keys.shift && 0.4 || 0.18) *
+	(keys.shift && 0.3 || 0.1) *
 	(keys.c && 0.5 || 1) *
 		((
 			keys.left || keys.right || keys.up || keys.down

@@ -50,19 +50,27 @@ const init = () => gltfLoader.load('assets/models/rogue.glb')
 		return {character, skeleton, mixer, acts};
 	});
 
-const refresh = ({scene, character, mixer, acts, state}) => {
+let lookAwayFrom = (me, target) => {
+	let v = new THREE.Vector3();
+	v.subVectors(me.position, target.position).add(me.position);
+	v.y = me.position.y;
+	me.lookAt(v);
+};
+
+const refresh = ({scene, character, mixer, acts, state, camera}) => {
 	const newPos = new THREE.Vector3().fromArray(state.player.position);
 
 	let walking = false;
 	let running = false;
 	let crouching = state.player.crouching;
 	if (character && character.position) {
+		if (state.camera.followPlayer) lookAwayFrom(character, camera);
 		if (character.position.distanceTo(newPos) > 0) {
 			walking = true;
-			character.lookAt(newPos);
+			if (!state.camera.followPlayer) character.lookAt(newPos);
+			if (character.position.distanceTo(newPos) >= 10) running = true;
 			// player.rotation.y -= 135;
 			console.log(character.position.distanceTo(newPos));
-			if (character.position.distanceTo(newPos) >= 10) running = true;
 		}
 		character.position.copy(newPos);
 	}
