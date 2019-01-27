@@ -4,6 +4,7 @@ const {obj, arr} = require('iblokz-data');
 
 // namespaces=
 const counter = require('./counter');
+const level = require('./level');
 
 // initial
 const initial = {
@@ -20,7 +21,8 @@ const initial = {
 	player: {
 		position: [-20, 0.2, 50],
 		crouching: false,
-		combat: false
+		combat: false,
+		force: 0
 	},
 	viewport: {
 		screen: {
@@ -59,6 +61,7 @@ const move = (direction, force) =>
 module.exports = {
 	initial,
 	counter,
+	level,
 	set,
 	toggle,
 	arrToggle,

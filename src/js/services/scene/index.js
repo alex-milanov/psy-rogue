@@ -19,9 +19,9 @@ const _camera = require('./camera');
 const _character = require('./character');
 const npcs = require('./npcs');
 
-const init = parentNode => {
-	let width = parentNode.offsetWidth;
-	let height = parentNode.offsetHeight;
+const init = ({canvas, state}) => {
+	let width = canvas.offsetWidth;
+	let height = canvas.offsetHeight;
 
 	// let camera = new THREE.PerspectiveCamera(70, width / height, 1, 1000);
 	let camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
@@ -60,10 +60,10 @@ const init = parentNode => {
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-	parentNode.innerHTML = '';
-	parentNode.appendChild(renderer.domElement);
+	canvas.innerHTML = '';
+	canvas.appendChild(renderer.domElement);
 
-	level.init(scene);
+	level.init({scene, state});
 
 	return {scene, light: dirLight, renderer, camera, canvas: renderer.domElement, plane};
 };
@@ -99,7 +99,8 @@ let hook = ({state$, actions}) => {
 		.map(() => document.querySelector('#view3d'))
 		.distinctUntilChanged(el => el)
 		.filter(el => el)
-		.map(canvas => () => init(canvas));
+		.withLatestFrom(state$, (canvas, state) => ({canvas, state}))
+		.map(({canvas, state}) => () => init({canvas, state}));
 
 	const character$ = _character.init()
 		.map(data => sceneState => {

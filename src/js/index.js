@@ -115,7 +115,8 @@ const directionForce$ = pressedKeys$
 	.map(keys => ({
 		direction: getDirection(keys),
 		force: getForce(keys)
-	}));
+	}))
+	.share();
 
 const crouching$ = keyboard.watch(['c'])
 	.distinctUntilChanged(keys => keys.c)
@@ -124,6 +125,9 @@ const crouching$ = keyboard.watch(['c'])
 time.frame().withLatestFrom(directionForce$, (t, df) => df)
 	.filter(({force}) => force > 0)
 	.subscribe(({direction, force}) => actions.move(direction, force));
+
+directionForce$.distinctUntilChanged(({force}) => force)
+	.subscribe(({force}) => actions.set('player', {force}));
 
 // livereload impl.
 if (module.hot) {

@@ -72,5 +72,21 @@ module.exports = ({state, actions}) => form('.controls', [
 		legend('Viewport'),
 		div(`Size: ${state.viewport.screen.width} x ${state.viewport.screen.height}`),
 		div(`Mouse: ${state.viewport.mouse.x} x ${state.viewport.mouse.y}`)
-	])
+	]),
+	fieldset([].concat(
+		legend('Detection'),
+		div(`Movement: ${state.player.force * 100}`),
+		div(`Tile: ${
+			parseInt(state.player.position[2] / 5 + state.level.map.length / 2, 10)
+		} x ${
+			parseInt(state.player.position[0] / 5 + state.level.map[0].length / 2, 10)
+		}: ${
+			['grass', 'pavement'][
+			state.level.map[
+				parseInt(state.player.position[2] / 5 + state.level.map.length / 2, 10)
+			][
+				parseInt(state.player.position[0] / 5 + state.level.map[0].length / 2, 10)
+			]]
+		}`)
+	))
 ]);
