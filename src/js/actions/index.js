@@ -37,7 +37,7 @@ const initial = {
 	},
 	controls: {
 		on: true,
-		camera: true
+		camera: false
 	}
 };
 

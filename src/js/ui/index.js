@@ -17,7 +17,7 @@ module.exports = ({state, actions}) => section('#ui', [
 	section('#view3d'),
 	footer([
 		p('Click and drag to Rotate. Scroll to Zoom.'),
-		p('User WASD keys to move, C to crouch')
+		h2('User WASD keys to move, C to crouch')
 	]),
 	controls({state, actions})
 	// audio(`[src="assets/samples/ambient.ogg"][autoplay="true"][controls="true"][loop="true"]`)
