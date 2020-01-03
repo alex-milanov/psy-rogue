@@ -22,8 +22,35 @@ const init = () => gltfLoader.load('assets/models/rogue.glb')
 		character.position.set(0, 0.2, 0);
 		character.traverse(function(object) {
 			if (object.isMesh) {
-				object.castShadow = true;
-				object.receiveShadow = true;
+				// object.castShadow = true;
+				// object.receiveShadow = true;
+				const reMat = object.material.clone();
+				const alpha = 0.3; // cell.side === 0 ? 0 : 1;
+				const beta = 0.3;
+				const gamma = 0.3;
+				let specularColor = new THREE.Color(beta * 0.2, beta * 0.2, beta * 0.2);
+				let specularShininess = Math.pow(2, alpha * 10);
+				let diffuseColor = new THREE.Color().setHSL(alpha,
+					0,
+					1
+					// gamma * 0.5 + 0.1).multiplyScalar(1 - beta * 0.2
+				);
+				// object.material.color = diffuseColor;
+				// object.material.specular = specularColor;
+				// object.material.reflectivity = beta;
+				// object.material.shininess = specularShininess;
+				object.material = new THREE.MeshToonMaterial({
+					color: diffuseColor,
+					specular: specularColor,
+					reflectivity: beta,
+					shininess: specularShininess,
+					skinning: true,
+					map: reMat.map,
+					normalMap: reMat.normalMap
+				});
+				// .copy(reMat);
+				// object.material.specular = new THREE.Color(`#aaa`);
+				// object.material.wireframe = true;
 			}
 		});
 

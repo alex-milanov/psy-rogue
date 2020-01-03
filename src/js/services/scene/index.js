@@ -7,6 +7,7 @@ const $ = Rx.Observable;
 // threejs
 const THREE = require('three');
 window.THREE = window.THREE || THREE;
+require('../../util/three/effects/outline.js');
 
 const colladaLoader = require('../../util/three/loader/collada.js');
 
@@ -60,18 +61,25 @@ const init = ({canvas, state}) => {
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+	let effect = new THREE.OutlineEffect(renderer, {
+		defaultThickness: 0.0005,
+		defaultColor: new THREE.Color(`#1a2a7a`),
+		defaultAlpha: 0.01
+		// defaultColor: new THREE.Color(`#2a133a`)
+	});
+
 	canvas.innerHTML = '';
 	canvas.appendChild(renderer.domElement);
 
 	level.init({scene, state});
 
-	return {scene, light: false, renderer, camera, canvas: renderer.domElement, plane};
+	return {scene, light: false, renderer, effect, camera, canvas: renderer.domElement, plane};
 };
 
 let cameraAngle = {x: 45, y: 210};
 let mouse = false;
 
-const render = ({plane, scene, camera, renderer, state, character, mixer, acts, guards}) => {
+const render = ({plane, scene, camera, effect, renderer, state, character, mixer, acts, guards}) => {
 	// console.log(items);
 	if (plane) {
 		// items[0].rotation.z += 0.01;
@@ -84,7 +92,8 @@ const render = ({plane, scene, camera, renderer, state, character, mixer, acts, 
 
 	renderer.setSize(state.viewport.screen.width, state.viewport.screen.height);
 	// renderer.setFaceCulling(0);
-	renderer.render(scene, camera);
+	// renderer.render(scene, camera);
+	effect.render(scene, camera);
 };
 
 // const loadMap = (url, dim) => imageUtil.load(url)

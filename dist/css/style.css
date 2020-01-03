@@ -2373,6 +2373,7 @@ body {
     width: 100%;
     height: 100%;
     pointer-events: none;
+    opacity: 0.4;
     background: radial-gradient(ellipse at center, rgba(11, 41, 91, 0) 0%, rgba(57, 123, 178, 0.3) 80%, rgba(57, 123, 178, 0.5) 100%); }
   #ui header, #ui footer {
     position: absolute;

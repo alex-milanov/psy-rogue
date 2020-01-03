@@ -19,7 +19,7 @@ const initial = {
 		followPlayer: true
 	},
 	player: {
-		position: [-20, 0.2, 50],
+		position: [-10, 0.2, 35],
 		rotation: 180,
 		crouching: false,
 		combat: false,
