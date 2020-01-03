@@ -30,7 +30,7 @@ const init = ({canvas, state}) => {
 
 	const scene = new THREE.Scene();
 
-	scene.add(new THREE.AmbientLight(0xcccccc, 0.1));
+	// scene.add(new THREE.AmbientLight(0xcccccc, 0.1));
 	// scene.add(new THREE.HemisphereLight(0x443333, 0x111122));
 	// scene.add(new THREE.PointLight(0xffffff, 0.3));
 	let dirLight = new THREE.DirectionalLight(0xffffff, 1);
@@ -65,7 +65,7 @@ const init = ({canvas, state}) => {
 
 	level.init({scene, state});
 
-	return {scene, light: dirLight, renderer, camera, canvas: renderer.domElement, plane};
+	return {scene, light: false, renderer, camera, canvas: renderer.domElement, plane};
 };
 
 let cameraAngle = {x: 45, y: 210};

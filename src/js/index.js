@@ -126,6 +126,15 @@ time.frame().withLatestFrom(directionForce$, (t, df) => df)
 	.filter(({force}) => force > 0)
 	.subscribe(({direction, force}) => actions.move(direction, force));
 
+time.frame().withLatestFrom(state$, (t, state) => state)
+	.distinctUntilChanged(state => state.viewport.mouse)
+	.filter(state => state.viewport.mouse.down)
+	.subscribe(state => actions.set(['player', 'rotation'],
+		Number((
+			(state.camera.range.h + state.player.rotation -
+				state.viewport.mouse.changeX * 0.3) % state.camera.range.h))
+	));
+
 directionForce$.distinctUntilChanged(({force}) => force)
 	.subscribe(({force}) => actions.set('player', {force}));
 

@@ -11,7 +11,7 @@ window.THREE = window.THREE || THREE;
 let clock = new THREE.Clock();
 
 const gltfLoader = require('../../util/three/loader/gltf.js');
-
+const degreeToRadiant = deg => Math.PI / (180 / deg);
 const init = () => gltfLoader.load('assets/models/rogue.glb')
 	.map(gltf => {
 		let character = gltf.scene;
@@ -64,15 +64,19 @@ const refresh = ({scene, character, mixer, acts, state, camera}) => {
 	let running = false;
 	let crouching = state.player.crouching;
 	if (character && character.position) {
-		if (state.camera.followPlayer) lookAwayFrom(character, camera);
+		if (state.camera.followPlayer) {
+			character.rotation.set(0, degreeToRadiant(state.player.rotation), 0);
+			// lookAwayFrom(character, camera);
+		}
 		if (character.position.distanceTo(newPos) > 0) {
 			walking = true;
-			if (!state.camera.followPlayer) character.lookAt(newPos);
+			character.lookAt(newPos);
 			if (character.position.distanceTo(newPos) >= 10) running = true;
 			// player.rotation.y -= 135;
 			console.log(character.position.distanceTo(newPos));
 		}
 		character.position.copy(newPos);
+		scene.getObjectByName('skybox').position.copy(newPos);
 	}
 
 	// sunLight.lookAt(newPos);

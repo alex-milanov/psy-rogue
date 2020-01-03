@@ -9,19 +9,21 @@ const level = require('./level');
 // initial
 const initial = {
 	camera: {
-		distance: 120,
+		distance: 60,
 		range: {
 			h: 360,
 			hOffset: -180,
 			v: 90,
 			vOffset: -80
 		},
-		followPlayer: false
+		followPlayer: true
 	},
 	player: {
 		position: [-20, 0.2, 50],
+		rotation: 180,
 		crouching: false,
 		combat: false,
+		direction: [0, 0],
 		force: 0
 	},
 	viewport: {
@@ -32,6 +34,8 @@ const initial = {
 		mouse: {
 			x: 0,
 			y: 0,
+			changeX: 0,
+			changeY: 0,
 			down: false
 		}
 	},
@@ -53,9 +57,25 @@ const zoom = amount => state => obj.patch(state, 'camera', {
 	distance: state.camera.distance + amount
 });
 
+const degreeToRadiant = deg => Math.PI / (180 / deg);
+const calcucalateAngle = (viewport, range) => ({
+	x: (viewport.mouse.x / viewport.screen.width * range.h) + range.hOffset,
+	y: (viewport.mouse.y / viewport.screen.height * range.v) + range.vOffset
+});
+
 const move = (direction, force) =>
 	state => obj.patch(state, 'player', {
-		position: state.player.position.map((p, i) => (p + direction[i] * force))
+		position: [
+			state.player.position[0] +
+				// front / back
+				(-Math.cos(degreeToRadiant(state.player.rotation + 45)) * direction[2] * force) +
+				(Math.cos(degreeToRadiant(state.player.rotation - 45)) * direction[0] * force),
+			state.player.position[1],
+			state.player.position[2] +
+				// front / back
+				(Math.sin(degreeToRadiant(state.player.rotation + 45)) * direction[2] * force) +
+				(-Math.sin(degreeToRadiant(state.player.rotation - 45)) * direction[0] * force)
+		]
 	});
 
 module.exports = {

@@ -76,6 +76,7 @@ module.exports = ({state, actions}) => form('.controls', [
 	fieldset([].concat(
 		legend('Detection'),
 		div(`Movement: ${state.player.force * 100}`),
+		div(`Rotation: ${state.player.rotation.toFixed()}`),
 		div(`Tile: ${
 			parseInt((state.player.position[2] - 2.5) / 5 + state.level.map.length / 2, 10)
 		} x ${

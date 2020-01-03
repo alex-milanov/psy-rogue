@@ -10,9 +10,12 @@ const hook = ({state$, actions}) => {
 	// mouse movement
 	subs.push(
 		$.fromEvent(document, 'mousemove')
-			.subscribe(ev => actions.set(['viewport', 'mouse'], {
+			.withLatestFrom(state$, (ev, state) => ({ev, state}))
+			.subscribe(({ev, state}) => actions.set(['viewport', 'mouse'], {
 				x: ev.pageX,
-				y: ev.pageY
+				y: ev.pageY,
+				changeX: ev.pageX - state.viewport.mouse.x,
+				changeY: ev.pageY - state.viewport.mouse.y
 			})));
 
 	subs.push(

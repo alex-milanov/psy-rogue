@@ -14,6 +14,18 @@ const colladaLoader = require('../../util/three/loader/collada.js');
 const gltfLoader = require('../../util/three/loader/gltf.js');
 const objLoader = require('../../util/three/loader/obj.js');
 
+const loadTexture = file => new THREE.TextureLoader().load(file);
+const genSkyboxMaterial = pack => new THREE.MeshFaceMaterial(
+	['front', 'back', 'up', 'down', 'right', 'left']
+		.map(direction => new THREE.MeshBasicMaterial({
+			map: loadTexture(`assets/skybox/${pack}/${direction}.png`),
+			side: THREE.DoubleSide,
+			fog: false,
+			transparent: true,
+			opacity: 0.3
+		}))
+	);
+
 const init = ({scene, state}) => {
 	const materials = ['ground.jpg', 'tiles.png']
 		.map(f => new THREE.TextureLoader().load(`assets/textures/${f}`))
@@ -24,6 +36,15 @@ const init = ({scene, state}) => {
 		.map(map => new THREE.MeshPhongMaterial({
 			map
 		}));
+
+	const skyboxGeo = new THREE.CubeGeometry(1000, 1000, 1000);
+	const skybox = new THREE.Mesh(skyboxGeo, genSkyboxMaterial('neccity'));
+	skybox.name = 'skybox';
+	// skybox.rotation.y += Math.PI / 2;
+	skybox.position.set(0, 0, 0);
+	scene.add(skybox);
+	scene.fog = new THREE.FogExp2(`#2a133a`, 0.015);
+	scene.background = new THREE.Color(`#2a133a`);
 
 	const geometry = new THREE.BoxGeometry(5, 0.2, 5);
 	state.level.map.forEach(
