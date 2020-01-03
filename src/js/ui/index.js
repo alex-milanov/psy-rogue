@@ -19,6 +19,7 @@ module.exports = ({state, actions}) => section('#ui', [
 		p('Click and drag to Rotate. Scroll to Zoom.'),
 		h2('User WASD keys to move, C to crouch')
 	]),
+	div('.overlay'),
 	controls({state, actions})
 	// audio(`[src="assets/samples/ambient.ogg"][autoplay="true"][controls="true"][loop="true"]`)
 ]);
