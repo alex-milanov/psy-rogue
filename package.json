@@ -1,46 +1,46 @@
 {
-  "name": "ui-boilerplate",
+  "name": "psy-rogue",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Web-based 3rd person stealth/action game inspired by Deus Ex and Oni",
+  "source": "src/index.pug",
   "scripts": {
-    "build": "npm run build:assets && npm run build:js && npm run build:sass",
-    "build:js": "browserify src/js/index.js -o dist/js/app.js --debug",
-    "build:sass": "node-sass --source-map dist/css/style.css.map --include-path=$(node bin/sass-paths.js) src/sass/style.sass dist/css/style.css",
-    "build:assets": "node bin/move-assets.js",
-    "watch": "npm run watch:js & npm run watch:sass & npm run watch:assets & npm run livereload",
-    "watch:js": "watchify -p browserify-hmr src/js/index.js -o dist/js/app.js --debug",
-    "watch:sass": "nodemon -w src/sass -e sass -x 'npm run build:sass'",
-    "watch:assets": "nodemon -e jpg,jpeg,gif,png,json,md,svg,flac,ogg --watch src/assets --exec 'npm run build:assets'",
-    "livereload": "livereload dist/**/*.css -d",
-    "start": "npm run build && serve --path dist & npm run watch",
-    "sync:gh": "git checkout gh-pages && git rebase master && git push && git checkout master"
+    "build": "parcel build",
+    "start": "parcel serve --host 0.0.0.0",
+    "dev": "parcel serve --host 0.0.0.0"
   },
   "author": "Alex Milanov <alex@i4web.biz>",
   "license": "MIT",
   "dependencies": {
-    "bourbon": "^4.2.7",
-    "bourbon-neat": "^1.8.0",
     "file-saver": "^2.0.0",
     "font-awesome": "^4.7.0",
-    "iblokz-data": "^1.2.0",
-    "iblokz-snabbdom-helpers": "^1.2.0",
+    "iblokz-data": "^1.6.0",
+    "iblokz-snabbdom-helpers": "^2.0.0",
+    "iblokz-state": "^1.1.0",
     "jszip": "^3.1.5",
+    "math-intrinsics": "^1.1.0",
     "raf": "^3.4.1",
-    "rx": "^4.1.0",
-    "snabbdom": "^0.5.4",
-    "superagent": "^3.3.1",
+    "rxjs": "^7.8.1",
     "three": "^0.100.0"
   },
   "devDependencies": {
-    "browserify": "^13.1.1",
-    "browserify-hmr": "^0.3.5",
+    "@parcel/config-default": "2.12.0",
+    "@parcel/transformer-pug": "2.12.0",
+    "@parcel/transformer-sass": "2.12.0",
+    "buffer": "^5.5.0||^6.0.0",
     "eslint": "^3.12.2",
     "eslint-config-google": "^0.6.0",
-    "fs-extra": "^1.0.0",
-    "livereload": "^0.6.0",
-    "node-sass": "^4.1.1",
-    "node-serve": "0.0.3",
-    "watchify": "^3.8.0"
+    "parcel": "2.12.0",
+    "parcel-reporter-static-files-copy": "^1.5.3",
+    "parcel-resolver-ignore": "^2.2.0",
+    "process": "^0.11.10"
+  },
+  "staticFiles": {
+    "staticPath": "src/assets",
+    "staticOutPath": "assets"
+  },
+  "pnpm": {
+    "overrides": {
+      "get-intrinsic": "1.2.4"
+    }
   }
 }

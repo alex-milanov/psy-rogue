@@ -1,9 +1,5 @@
 'use strict';
 
-// lib
-const Rx = require('rx');
-const $ = Rx.Observable;
-
 // threejs
 const THREE = require('three');
 window.THREE = window.THREE || THREE;

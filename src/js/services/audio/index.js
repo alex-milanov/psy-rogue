@@ -1,8 +1,5 @@
 'use strict';
 // lib
-const Rx = require('rx');
-const $ = Rx.Observable;
-
 const {obj, fn} = require('iblokz-data');
 const file = require('../../util/file');
 const a = require('../../util/audio');
@@ -47,7 +44,7 @@ let unhook = () => {};
 const hook = ({state$, actions}) => {
 	let subs = [];
 	console.log(song.session.tracks);
-	unhook = () => subs.forEach(sub => sub.dispose());
+	unhook = () => subs.forEach(sub => sub.unsubscribe());
 };
 
 module.exports = {

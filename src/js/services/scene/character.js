@@ -1,8 +1,7 @@
 'use strict';
 
 // lib
-const Rx = require('rx');
-const $ = Rx.Observable;
+const { map } = require('rxjs/operators');
 
 // threejs
 const THREE = require('three');
@@ -13,7 +12,7 @@ let clock = new THREE.Clock();
 const gltfLoader = require('../../util/three/loader/gltf.js');
 const degreeToRadiant = deg => Math.PI / (180 / deg);
 const init = () => gltfLoader.load('assets/models/rogue.glb')
-	.map(gltf => {
+	.pipe(map(gltf => {
 		let character = gltf.scene;
 		// player.rotation.y = -180 * Math.PI / 180;
 		character.castShadow = true;
@@ -75,7 +74,7 @@ const init = () => gltfLoader.load('assets/models/rogue.glb')
 
 		acts[1].setEffectiveWeight(1);
 		return {character, skeleton, mixer, acts};
-	});
+	}));
 
 let lookAwayFrom = (me, target) => {
 	let v = new THREE.Vector3();

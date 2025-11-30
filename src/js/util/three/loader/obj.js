@@ -1,8 +1,7 @@
 'use strict';
 
 // lib
-const Rx = require('rx');
-const $ = Rx.Observable;
+const { Observable } = require('rxjs');
 
 // threejs
 const THREE = require('three');
@@ -11,14 +10,14 @@ window.THREE = window.THREE || THREE;
 require('three/examples/js/loaders/MTLLoader.js');
 require('three/examples/js/loaders/OBJLoader.js');
 
-const load = url => $.create(observer => new THREE.MTLLoader()
+const load = url => new Observable(observer => new THREE.MTLLoader()
 	.load(url.replace('.obj', '.mtl'), materials => (
 		materials.preload(),
 		new THREE.OBJLoader()
 			.setMaterials(materials)
 			.load(url, object => (
-				observer.onNext(object),
-				observer.onCompleted()
+				observer.next(object),
+				observer.complete()
 			))
 	)));
 

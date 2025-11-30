@@ -1,21 +1,20 @@
 'use strict';
 
 // lib
-const Rx = require('rx');
-const $ = Rx.Observable;
+const { Observable } = require('rxjs');
 
-const load = path => Rx.Observable.create(observer => {
+const load = path => new Observable(observer => {
 	const image = new Image();
 
 	image.src = path;
 
 	image.onload = () => {
 		console.log('loaded image' + path);
-		observer.onNext(image);
-		observer.onCompleted();
+		observer.next(image);
+		observer.complete();
 	};
 
-	image.onError = err => observer.onError(err);
+	image.onError = err => observer.error(err);
 });
 
 const getData = (image, dim = 256) => {

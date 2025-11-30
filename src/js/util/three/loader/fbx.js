@@ -1,8 +1,7 @@
 'use strict';
 
 // lib
-const Rx = require('rx');
-const $ = Rx.Observable;
+const { Observable } = require('rxjs');
 
 // threejs
 const THREE = require('three');
@@ -10,10 +9,10 @@ window.THREE = window.THREE || THREE;
 require('three/examples/js/libs/inflate.min.js');
 require('three/examples/js/loaders/FBXLoader.js');
 
-const load = url => $.create(observer => new THREE.FBXLoader()
+const load = url => new Observable(observer => new THREE.FBXLoader()
 	.load(url, function(fbx) {
-		observer.onNext(fbx);
-		observer.onCompleted();
+		observer.next(fbx);
+		observer.complete();
 	}));
 
 module.exports = {

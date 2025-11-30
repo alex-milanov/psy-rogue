@@ -1,7 +1,7 @@
 'use strict';
 // lib
-const Rx = require('rx');
-const $ = Rx.Observable;
+const { fromEvent } = require('rxjs');
+const { withLatestFrom, filter, startWith } = require('rxjs/operators');
 
 let unhook = () => {};
 
@@ -9,8 +9,10 @@ const hook = ({state$, actions}) => {
 	let subs = [];
 	// mouse movement
 	subs.push(
-		$.fromEvent(document, 'mousemove')
-			.withLatestFrom(state$, (ev, state) => ({ev, state}))
+		fromEvent(document, 'mousemove')
+			.pipe(
+				withLatestFrom(state$, (ev, state) => ({ev, state}))
+			)
 			.subscribe(({ev, state}) => actions.set(['viewport', 'mouse'], {
 				x: ev.pageX,
 				y: ev.pageY,
@@ -19,29 +21,35 @@ const hook = ({state$, actions}) => {
 			})));
 
 	subs.push(
-		$.fromEvent(document, 'mousedown')
-			.filter(ev => ev.target.tagName === 'CANVAS')
+		fromEvent(document, 'mousedown')
+			.pipe(
+				filter(ev => ev.target.tagName === 'CANVAS')
+			)
 			.subscribe(ev => actions.set(['viewport', 'mouse'], {
 				down: true
 			})));
 
 	subs.push(
-		$.fromEvent(document, 'mouseup')
+		fromEvent(document, 'mouseup')
 			.subscribe(ev => actions.set(['viewport', 'mouse'], {
 				down: false
 			})));
 
 	subs.push(
-		$.fromEvent(document, 'mousewheel')
-			.filter(ev => ev.target.tagName === 'CANVAS')
+		fromEvent(document, 'mousewheel')
+			.pipe(
+				filter(ev => ev.target.tagName === 'CANVAS')
+			)
 			.subscribe(ev => (
 				ev.preventDefault(),
 				actions.zoom(Math.ceil(Math.abs(ev.deltaY / 30)) * (ev.deltaY > 0 ? 1 : -1)
 			))));
 
 	subs.push(
-		$.fromEvent(window, 'resize')
-			.startWith({})
+		fromEvent(window, 'resize')
+			.pipe(
+				startWith({})
+			)
 			.subscribe(ev => actions.set(['viewport', 'screen'], {
 				width: window.innerWidth,
 				height: window.innerHeight,
@@ -56,7 +64,7 @@ const hook = ({state$, actions}) => {
 								: 'xs'
 			})));
 
-	unhook = () => subs.forEach(sub => sub.dispose());
+	unhook = () => subs.forEach(sub => sub.unsubscribe());
 };
 
 module.exports = {

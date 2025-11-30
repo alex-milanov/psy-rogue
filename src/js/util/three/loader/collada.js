@@ -1,8 +1,7 @@
 'use strict';
 
 // lib
-const Rx = require('rx');
-const $ = Rx.Observable;
+const { Observable } = require('rxjs');
 
 // threejs
 const THREE = require('three');
@@ -10,10 +9,10 @@ window.THREE = window.THREE || THREE;
 
 require('three/examples/js/loaders/ColladaLoader.js');
 
-const load = url => $.create(observer => new THREE.ColladaLoader(new THREE.LoadingManager())
+const load = url => new Observable(observer => new THREE.ColladaLoader(new THREE.LoadingManager())
 	.load(url, function(collada) {
-		observer.onNext(collada);
-		observer.onCompleted();
+		observer.next(collada);
+		observer.complete();
 	}));
 
 module.exports = {

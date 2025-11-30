@@ -1,8 +1,8 @@
 'use strict';
 
 // lib
-const Rx = require('rx');
-const $ = Rx.Observable;
+const { from } = require('rxjs');
+const { concatMap, reduce } = require('rxjs/operators');
 
 // threejs
 const THREE = require('three');
@@ -67,14 +67,16 @@ const init = ({scene, state}) => {
 			)
 	);
 	const modelScale = [0.5, 2.5, 3, 3, 1];
-	$.fromArray(['lamp.dae', 'bench.dae', 'tree1.dae', 'tree2.dae', 'tree3.dae'])
-		.concatMap(f => f.match('.dae')
-			? colladaLoader.load(`assets/models/${f}`)
-			: f.match('.obj')
-				? objLoader.load(`assets/models/${f}`)
-				: gltfLoader.load(`assets/models/${f}`)
+	from(['lamp.dae', 'bench.dae', 'tree1.dae', 'tree2.dae', 'tree3.dae'])
+		.pipe(
+			concatMap(f => f.match('.dae')
+				? colladaLoader.load(`assets/models/${f}`)
+				: f.match('.obj')
+					? objLoader.load(`assets/models/${f}`)
+					: gltfLoader.load(`assets/models/${f}`)
+			),
+			reduce((a, m) => [].concat(a, m), [])
 		)
-		.reduce((a, m) => [].concat(a, m), [])
 		.subscribe(colladaArray => {
 			let meshes = colladaArray
 				.map(c => c.scene)

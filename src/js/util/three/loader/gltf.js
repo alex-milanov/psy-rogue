@@ -1,8 +1,7 @@
 'use strict';
 
 // lib
-const Rx = require('rx');
-const $ = Rx.Observable;
+const { Observable } = require('rxjs');
 
 // threejs
 const THREE = require('three');
@@ -10,10 +9,10 @@ window.THREE = window.THREE || THREE;
 
 require('three/examples/js/loaders/GLTFLoader.js');
 
-const load = url => $.create(observer => new THREE.GLTFLoader()
+const load = url => new Observable(observer => new THREE.GLTFLoader()
 	.load(url, function(gltf) {
-		observer.onNext(gltf);
-		observer.onCompleted();
+		observer.next(gltf);
+		observer.complete();
 	}));
 
 const clone = gltf => {

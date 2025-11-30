@@ -1,8 +1,7 @@
 'use strict';
 
 // lib
-const Rx = require('rx');
-const $ = Rx.Observable;
+const { map } = require('rxjs/operators');
 
 // threejs
 const THREE = require('three');
@@ -19,7 +18,7 @@ const routes = [
 const gltfLoader = require('../../util/three/loader/gltf.js');
 
 const init = () => gltfLoader.load('assets/models/guard.glb')
-	.map(gltf => {
+	.pipe(map(gltf => {
 		let animations = gltf.animations;
 
 		// console.log('123', guard, guard.clone());
@@ -61,7 +60,7 @@ const init = () => gltfLoader.load('assets/models/guard.glb')
 			}
 		);
 		return guards;
-	});
+	}));
 
 const refresh = ({scene, guards, state}) => {
 	let mixerUpdateDelta = clock.getDelta();

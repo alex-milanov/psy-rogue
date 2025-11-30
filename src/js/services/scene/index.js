@@ -1,8 +1,8 @@
 'use strict';
 
 // lib
-const Rx = require('rx');
-const $ = Rx.Observable;
+const { interval, merge, of } = require('rxjs');
+const { map, filter, distinctUntilChanged, withLatestFrom, scan } = require('rxjs/operators');
 
 // threejs
 const THREE = require('three');
@@ -104,51 +104,61 @@ let unhook = () => {};
 let hook = ({state$, actions}) => {
 	let subs = [];
 
-	const init$ = $.interval(100)
-		.map(() => document.querySelector('#view3d'))
-		.distinctUntilChanged(el => el)
-		.filter(el => el)
-		.withLatestFrom(state$, (canvas, state) => ({canvas, state}))
-		.map(({canvas, state}) => () => init({canvas, state}));
+	const init$ = interval(100)
+		.pipe(
+			map(() => document.querySelector('#view3d')),
+			distinctUntilChanged(),
+			filter(el => el),
+			withLatestFrom(state$, (canvas, state) => ({canvas, state})),
+			map(({canvas, state}) => () => init({canvas, state}))
+		);
 
 	const character$ = _character.init()
-		.map(data => sceneState => {
-			sceneState.scene.add(data.character);
-			console.log(data.character);
-			console.log(sceneState);
-			return {
-				...sceneState,
-				...data
-			};
-		});
+		.pipe(
+			map(data => sceneState => {
+				sceneState.scene.add(data.character);
+				console.log(data.character);
+				console.log(sceneState);
+				return {
+					...sceneState,
+					...data
+				};
+			})
+		);
 	const npcs$ = npcs.init()
-		.map(guards => sceneState => {
-			console.log(guards);
-			guards.forEach(guard => {
-				sceneState.scene.add(guard.model);
-			});
-			console.log(sceneState);
-			return {
-				...sceneState,
-				guards
-			};
-		});
+		.pipe(
+			map(guards => sceneState => {
+				console.log(guards);
+				guards.forEach(guard => {
+					sceneState.scene.add(guard.model);
+				});
+				console.log(sceneState);
+				return {
+					...sceneState,
+					guards
+				};
+			})
+		);
 
-	const sceneState$ = $.merge(
+	const sceneState$ = merge(
 		init$,
 		character$,
 		npcs$
 	)
-		.map(reducer => (console.log(reducer), reducer))
-		.scan((sceneState, modify) => modify(sceneState), {});
+		.pipe(
+			map(reducer => (console.log(reducer), reducer)),
+			scan((sceneState, modify) => modify(sceneState), {})
+		);
 
 	subs.push(
 		time.frame()
-			.filter((dt, i) => i % 2 === 0)
-			.withLatestFrom(
-				sceneState$,
-				state$,
-				(dt, sceneState, state) => ({...sceneState, state})
+			.pipe(
+				filter((dt, i) => i % 2 === 0),
+				withLatestFrom(
+					sceneState$,
+					state$,
+					(dt, sceneState, state) => ({...sceneState, state})
+				)
 			)
 			.subscribe(render)
 	);
@@ -156,10 +166,12 @@ let hook = ({state$, actions}) => {
 	subs.push(
 		() => {
 			console.log('cleaning up scene');
-			let cleanupSub = $.just({}).withLatestFrom(sceneState$, (j, sceneState) => sceneState)
+			let cleanupSub = of({}).pipe(
+				withLatestFrom(sceneState$, (j, sceneState) => sceneState)
+			)
 				.subscribe(({renderer}) => {
 					renderer.dispose();
-					cleanupSub.dispose();
+					cleanupSub.unsubscribe();
 				});
 		}
 	);
@@ -167,7 +179,7 @@ let hook = ({state$, actions}) => {
 	unhook = () => {
 		console.log(subs);
 
-		subs.forEach(sub => sub.dispose ? sub.dispose() : sub());
+		subs.forEach(sub => sub.unsubscribe ? sub.unsubscribe() : sub());
 	};
 };
 
