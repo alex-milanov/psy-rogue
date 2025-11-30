@@ -8,6 +8,7 @@ const {
 } = require('iblokz-snabbdom-helpers');
 // components
 const controls = require('./controls');
+const minimap = require('./minimap');
 
 module.exports = ({state, actions}) => section('#ui', [
 	header([
@@ -17,9 +18,10 @@ module.exports = ({state, actions}) => section('#ui', [
 	section('#view3d'),
 	footer([
 		p('Click and drag to Rotate. Scroll to Zoom.'),
-		h2('User WASD keys to move, C to crouch')
+		h2('User WASD keys to move, C to crouch. Press M for minimap')
 	]),
 	div('.overlay'),
+	minimap({state, actions}),
 	controls({state, actions})
 	// audio(`[src="assets/samples/ambient.ogg"][autoplay="true"][controls="true"][loop="true"]`)
 ]);

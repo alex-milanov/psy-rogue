@@ -596,10 +596,12 @@ let { actions, state$ } = createState(actionsTree);
 let ui = require("708dd545cf97b855");
 let actions$;
 // services
+let game = require("e3aca16aa9bf85a6");
 let scene = require("61a906e6c15865d9");
 let viewport = require("9c1dd700a3dfbfe7");
 let audio = require("857d912d3b1e9c60");
 let control = require("a648e0b05c5a466f");
+let minimap = require("3fa95d9e0aa0bda3");
 // hot reloading
 if (module.hot) {
     // actions
@@ -652,9 +654,18 @@ actions.stream.subscribe((action)=>{
 // logging
 state$.pipe(map((state)=>obj.filter(state, (key)=>key !== "viewport")), distinctUntilChanged()).subscribe((state)=>console.log(state));
 // services
-scene.hook({
+game.hook({
     state$,
     actions
+});
+minimap.hook({
+    state$,
+    actions
+});
+scene.hook({
+    state$,
+    actions,
+    minimap
 });
 viewport.hook({
     state$,
@@ -675,7 +686,7 @@ const ui$ = state$.pipe(map((state)=>ui({
     })));
 vdom.patchStream(ui$, "#ui");
 
-},{"6295082dc10ffab7":"1cs2r","be3ba22bdbdef716":"5SuSv","84a81e6e1cfcc506":"2lXuw","2ce56a28465047ff":"deOrm","fd6dd62d6ed239cb":"ccGLY","708dd545cf97b855":"5ppKY","61a906e6c15865d9":"7ia0b","9c1dd700a3dfbfe7":"jz7zu","857d912d3b1e9c60":"iNo8a","a648e0b05c5a466f":"6beJI"}],"1cs2r":[function(require,module,exports) {
+},{"6295082dc10ffab7":"1cs2r","be3ba22bdbdef716":"5SuSv","84a81e6e1cfcc506":"2lXuw","2ce56a28465047ff":"deOrm","fd6dd62d6ed239cb":"ccGLY","708dd545cf97b855":"5ppKY","61a906e6c15865d9":"7ia0b","9c1dd700a3dfbfe7":"jz7zu","857d912d3b1e9c60":"iNo8a","a648e0b05c5a466f":"6beJI","3fa95d9e0aa0bda3":"ei4So","e3aca16aa9bf85a6":"mVKxe"}],"1cs2r":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "audit", ()=>(0, _audit.audit));
@@ -9381,9 +9392,10 @@ const createState = (tree, namespace = "state.changes", storage = null)=>{
 },{"rxjs":"hWUVi","iblokz-data":"2lXuw","./core.js":"eNXlu","@parcel/transformer-js/src/esmodule-helpers.js":"bnxJ5"}],"ccGLY":[function(require,module,exports) {
 "use strict";
 const { obj, arr } = require("1c8a65d6e47c04ea");
-// namespaces=
+// namespaces
 const counter = require("dc545a6d01575926");
 const level = require("27175040b3258a34");
+const game = require("623d3d8fbf75d2fd");
 // initial
 const initial = {
     camera: {
@@ -9394,7 +9406,11 @@ const initial = {
             v: 90,
             vOffset: -80
         },
-        followPlayer: true
+        followPlayer: true,
+        angle: {
+            x: 45,
+            y: 210
+        }
     },
     player: {
         position: [
@@ -9427,7 +9443,12 @@ const initial = {
     controls: {
         on: true,
         camera: false
-    }
+    },
+    minimap: {
+        enabled: true,
+        size: 200
+    },
+    game: game.actions.initial
 };
 // actions
 const set = (key, value)=>(state)=>obj.patch(state, key, value);
@@ -9461,7 +9482,7 @@ module.exports = {
     move
 };
 
-},{"1c8a65d6e47c04ea":"2lXuw","dc545a6d01575926":"6SQrn","27175040b3258a34":"daXoL"}],"6SQrn":[function(require,module,exports) {
+},{"1c8a65d6e47c04ea":"2lXuw","dc545a6d01575926":"6SQrn","27175040b3258a34":"daXoL","623d3d8fbf75d2fd":"mVKxe"}],"6SQrn":[function(require,module,exports) {
 "use strict";
 // lib
 const { obj } = require("ced435be652a83a5");
@@ -10715,12 +10736,433 @@ module.exports = {
     initial
 };
 
+},{}],"mVKxe":[function(require,module,exports) {
+"use strict";
+// lib
+const { withLatestFrom } = require("ab7fe4da7042e688");
+// util
+const time = require("1b88273edfe189dd");
+// Guard AI and game logic
+const initial = {
+    guards: [
+        {
+            id: "guard-1",
+            position: [
+                -10,
+                0.2,
+                -20
+            ],
+            rotation: 0,
+            route: [
+                [
+                    -10,
+                    0.2,
+                    -20
+                ],
+                [
+                    20,
+                    0.2,
+                    -20
+                ]
+            ],
+            routeIndex: 0,
+            mode: "idle",
+            frame: 0
+        },
+        {
+            id: "guard-2",
+            position: [
+                0,
+                0.2,
+                0
+            ],
+            rotation: 0,
+            route: [
+                [
+                    0,
+                    0.2,
+                    0
+                ],
+                [
+                    -30,
+                    0.2,
+                    0
+                ]
+            ],
+            routeIndex: 0,
+            mode: "idle",
+            frame: 0
+        },
+        {
+            id: "guard-3",
+            position: [
+                -20,
+                0.2,
+                20
+            ],
+            rotation: 0,
+            route: [
+                [
+                    -20,
+                    0.2,
+                    20
+                ],
+                [
+                    10,
+                    0.2,
+                    20
+                ],
+                [
+                    10,
+                    0.2,
+                    40
+                ]
+            ],
+            routeIndex: 0,
+            mode: "idle",
+            frame: 0
+        }
+    ]
+};
+const updateGuard = (guard)=>{
+    if (guard.mode === "idle") {
+        guard.frame++;
+        if (guard.frame >= 60) {
+            guard.mode = "walk";
+            guard.frame = 0;
+        }
+    } else if (guard.mode === "walk") {
+        // Move towards next waypoint
+        const target = guard.route[guard.routeIndex];
+        const dx = target[0] - guard.position[0];
+        const dz = target[2] - guard.position[2];
+        const distance = Math.sqrt(dx * dx + dz * dz);
+        // Update rotation to face target
+        guard.rotation = Math.atan2(dx, dz);
+        if (distance < 0.12) {
+            // Reached waypoint
+            guard.position = [
+                ...target
+            ];
+            guard.routeIndex++;
+            if (guard.routeIndex >= guard.route.length) {
+                // End of route, reverse direction
+                guard.route = [
+                    ...guard.route
+                ].reverse();
+                guard.routeIndex = 1; // Next waypoint after current
+            }
+            guard.mode = "idle";
+            guard.frame = 0;
+        } else {
+            // Move towards target
+            const speed = 0.08;
+            const ratio = Math.min(speed / distance, 1);
+            guard.position[0] += dx * ratio;
+            guard.position[2] += dz * ratio;
+        }
+    }
+    return guard;
+};
+const loop = ({ state })=>{
+    // Update all guards
+    const guards = state.game.guards.map(updateGuard);
+    return {
+        guards
+    };
+};
+const actions = {
+    initial
+};
+let unhook = ()=>{};
+const hook = ({ state$, actions })=>{
+    let subs = [];
+    // Game loop - update guard AI
+    subs.push(time.frame().pipe(withLatestFrom(state$, (dt, state)=>({
+            dt,
+            state
+        }))).subscribe(({ dt, state })=>{
+        if (state.game) {
+            const updates = loop({
+                state
+            });
+            actions.set("game", updates);
+        }
+    }));
+    unhook = ()=>subs.forEach((sub)=>sub.unsubscribe());
+};
+module.exports = {
+    actions,
+    hook,
+    unhook: ()=>unhook()
+};
+
+},{"ab7fe4da7042e688":"1cs2r","1b88273edfe189dd":"1fT3w"}],"1fT3w":[function(require,module,exports) {
+"use strict";
+// lib
+const { Observable } = require("ceca75749931aa98");
+const { filter, share, withLatestFrom } = require("b951f29c417a8e4f");
+const raf = require("2e9a2e45ceca19d2");
+const tick = (cb)=>raf(function(dt) {
+        cb(dt);
+        tick(cb);
+    });
+const frame = ()=>new Observable((obs)=>tick((dt)=>obs.next(dt))).pipe(filter((dt)=>dt !== 0), share());
+const loop = (state$, node)=>frame(node).pipe(withLatestFrom(state$, (dt, state)=>({
+            dt,
+            state
+        })));
+module.exports = {
+    frame,
+    loop
+};
+
+},{"ceca75749931aa98":"hWUVi","b951f29c417a8e4f":"1cs2r","2e9a2e45ceca19d2":"7Jun9"}],"7Jun9":[function(require,module,exports) {
+var global = arguments[3];
+var now = require("8ac08eb46c52bf57"), root = typeof window === "undefined" ? global : window, vendors = [
+    "moz",
+    "webkit"
+], suffix = "AnimationFrame", raf = root["request" + suffix], caf = root["cancel" + suffix] || root["cancelRequest" + suffix];
+for(var i = 0; !raf && i < vendors.length; i++){
+    raf = root[vendors[i] + "Request" + suffix];
+    caf = root[vendors[i] + "Cancel" + suffix] || root[vendors[i] + "CancelRequest" + suffix];
+}
+// Some versions of FF have rAF but not cAF
+if (!raf || !caf) {
+    var last = 0, id = 0, queue = [], frameDuration = 1000 / 60;
+    raf = function(callback) {
+        if (queue.length === 0) {
+            var _now = now(), next = Math.max(0, frameDuration - (_now - last));
+            last = next + _now;
+            setTimeout(function() {
+                var cp = queue.slice(0);
+                // Clear queue here to prevent
+                // callbacks from appending listeners
+                // to the current frame's queue
+                queue.length = 0;
+                for(var i = 0; i < cp.length; i++){
+                    if (!cp[i].cancelled) try {
+                        cp[i].callback(last);
+                    } catch (e) {
+                        setTimeout(function() {
+                            throw e;
+                        }, 0);
+                    }
+                }
+            }, Math.round(next));
+        }
+        queue.push({
+            handle: ++id,
+            callback: callback,
+            cancelled: false
+        });
+        return id;
+    };
+    caf = function(handle) {
+        for(var i = 0; i < queue.length; i++)if (queue[i].handle === handle) queue[i].cancelled = true;
+    };
+}
+module.exports = function(fn) {
+    // Wrap in a new function to prevent
+    // `cancel` potentially being assigned
+    // to the native rAF function
+    return raf.call(root, fn);
+};
+module.exports.cancel = function() {
+    caf.apply(root, arguments);
+};
+module.exports.polyfill = function(object) {
+    if (!object) object = root;
+    object.requestAnimationFrame = raf;
+    object.cancelAnimationFrame = caf;
+};
+
+},{"8ac08eb46c52bf57":"lOoWL"}],"lOoWL":[function(require,module,exports) {
+var process = require("8e102ffac3078272");
+// Generated by CoffeeScript 1.12.2
+(function() {
+    var getNanoSeconds, hrtime, loadTime, moduleLoadTime, nodeLoadTime, upTime;
+    if (typeof performance !== "undefined" && performance !== null && performance.now) module.exports = function() {
+        return performance.now();
+    };
+    else if (typeof process !== "undefined" && process !== null && process.hrtime) {
+        module.exports = function() {
+            return (getNanoSeconds() - nodeLoadTime) / 1e6;
+        };
+        hrtime = process.hrtime;
+        getNanoSeconds = function() {
+            var hr;
+            hr = hrtime();
+            return hr[0] * 1e9 + hr[1];
+        };
+        moduleLoadTime = getNanoSeconds();
+        upTime = process.uptime() * 1e9;
+        nodeLoadTime = moduleLoadTime - upTime;
+    } else if (Date.now) {
+        module.exports = function() {
+            return Date.now() - loadTime;
+        };
+        loadTime = Date.now();
+    } else {
+        module.exports = function() {
+            return new Date().getTime() - loadTime;
+        };
+        loadTime = new Date().getTime();
+    }
+}).call(this);
+
+},{"8e102ffac3078272":"8MGn2"}],"8MGn2":[function(require,module,exports) {
+// shim for using process in browser
+var process = module.exports = {};
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+var cachedSetTimeout;
+var cachedClearTimeout;
+function defaultSetTimout() {
+    throw new Error("setTimeout has not been defined");
+}
+function defaultClearTimeout() {
+    throw new Error("clearTimeout has not been defined");
+}
+(function() {
+    try {
+        if (typeof setTimeout === "function") cachedSetTimeout = setTimeout;
+        else cachedSetTimeout = defaultSetTimout;
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === "function") cachedClearTimeout = clearTimeout;
+        else cachedClearTimeout = defaultClearTimeout;
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+})();
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) //normal enviroments in sane situations
+    return setTimeout(fun, 0);
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch (e) {
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch (e) {
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) //normal enviroments in sane situations
+    return clearTimeout(marker);
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e) {
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e) {
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) return;
+    draining = false;
+    if (currentQueue.length) queue = currentQueue.concat(queue);
+    else queueIndex = -1;
+    if (queue.length) drainQueue();
+}
+function drainQueue() {
+    if (draining) return;
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+    var len = queue.length;
+    while(len){
+        currentQueue = queue;
+        queue = [];
+        while(++queueIndex < len)if (currentQueue) currentQueue[queueIndex].run();
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+process.nextTick = function(fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) for(var i = 1; i < arguments.length; i++)args[i - 1] = arguments[i];
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) runTimeout(drainQueue);
+};
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function() {
+    this.fun.apply(null, this.array);
+};
+process.title = "browser";
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ""; // empty string to avoid regexp issues
+process.versions = {};
+function noop() {}
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+process.listeners = function(name) {
+    return [];
+};
+process.binding = function(name) {
+    throw new Error("process.binding is not supported");
+};
+process.cwd = function() {
+    return "/";
+};
+process.chdir = function(dir) {
+    throw new Error("process.chdir is not supported");
+};
+process.umask = function() {
+    return 0;
+};
+
 },{}],"5ppKY":[function(require,module,exports) {
 "use strict";
 // dom
 const { h1, h2, a, div, p, section, button, span, canvas, header, footer, audio } = require("8ff8f3c9a4ca8fd1");
 // components
 const controls = require("ebe9861ad7510f4d");
+const minimap = require("548648ef19f5a206");
 module.exports = ({ state, actions })=>section("#ui", [
         header([
             h1("Psy"),
@@ -10729,16 +11171,20 @@ module.exports = ({ state, actions })=>section("#ui", [
         section("#view3d"),
         footer([
             p("Click and drag to Rotate. Scroll to Zoom."),
-            h2("User WASD keys to move, C to crouch")
+            h2("User WASD keys to move, C to crouch. Press M for minimap")
         ]),
         div(".overlay"),
+        minimap({
+            state,
+            actions
+        }),
         controls({
             state,
             actions
         })
     ]);
 
-},{"8ff8f3c9a4ca8fd1":"5SuSv","ebe9861ad7510f4d":"aZCbF"}],"aZCbF":[function(require,module,exports) {
+},{"8ff8f3c9a4ca8fd1":"5SuSv","ebe9861ad7510f4d":"aZCbF","548648ef19f5a206":"cIXOv"}],"aZCbF":[function(require,module,exports) {
 "use strict";
 // dom
 const { header, h1, section, button, span, canvas, form, input, label, legend, fieldset, div, i } = require("50e7f413eccad82c");
@@ -10814,13 +11260,84 @@ module.exports = ({ state, actions })=>form(".controls", [
             div(`Size: ${state.viewport.screen.width} x ${state.viewport.screen.height}`),
             div(`Mouse: ${state.viewport.mouse.x} x ${state.viewport.mouse.y}`)
         ]),
-        fieldset([].concat(legend("Detection"), div(`Movement: ${state.player.force * 100}`), div(`Rotation: ${state.player.rotation.toFixed()}`), div(`Tile: ${parseInt((state.player.position[2] - 2.5) / 5 + state.level.map.length / 2, 10)} x ${parseInt((state.player.position[0] - 2.5) / 5 + state.level.map[0].length / 2, 10)}: ${[
+        fieldset([].concat(legend("Player Debug"), div(`Position: [${state.player.position.map((v)=>v.toFixed(1)).join(", ")}]`), div(`Rotation: ${state.player.rotation.toFixed(1)}\xb0`), div(`Direction: [${state.player.direction.join(", ")}]`), state.camera && state.camera.angle ? div(`Camera: [${state.camera.angle.x.toFixed(1)}\xb0, ${state.camera.angle.y.toFixed(1)}\xb0]`) : div(), div(`Force: ${(state.player.force * 100).toFixed(0)}%`), div(`Crouching: ${state.player.crouching ? "Yes" : "No"}`), div(`Tile: ${parseInt((state.player.position[2] - 2.5) / 5 + state.level.map.length / 2, 10)} x ${parseInt((state.player.position[0] - 2.5) / 5 + state.level.map[0].length / 2, 10)}: ${[
             "grass",
             "pavement"
         ][state.level.map[parseInt((state.player.position[2] - 2.5) / 5 + state.level.map.length / 2, 10)][parseInt((state.player.position[0] - 2.5) / 5 + state.level.map[0].length / 2, 10)]]}`)))
     ]);
 
-},{"50e7f413eccad82c":"5SuSv","90e5952e7690b9fe":"2lXuw"}],"7ia0b":[function(require,module,exports) {
+},{"50e7f413eccad82c":"5SuSv","90e5952e7690b9fe":"2lXuw"}],"cIXOv":[function(require,module,exports) {
+"use strict";
+const { obj } = require("4ef6bac7ab5afb6c");
+// const h = require('snabbdom/h').default;
+const { h, div, canvas } = require("fe9a161bb2c46b32");
+module.exports = ({ state, actions })=>{
+    if (!state.minimap || !state.minimap.enabled) return h("div");
+    return div(".minimap", {
+        style: {
+            position: "absolute",
+            top: "64px",
+            right: "16px",
+            width: `${state.minimap.size}px`,
+            height: `${state.minimap.size}px`,
+            background: "rgba(0, 50, 70, 0.3)",
+            border: "1px solid #71a1d1",
+            "border-left-width": "4px",
+            "box-shadow": "inset 0px 0px 24px rgba(113, 161, 209, 0.5)",
+            "z-index": "1000",
+            opacity: "0.7",
+            "font-family": "Nova Flat"
+        }
+    }, [
+        canvas("#minimap-canvas", {
+            attrs: {
+                width: state.minimap.size,
+                height: state.minimap.size
+            },
+            style: {
+                display: "block",
+                width: "100%",
+                height: "100%"
+            }
+        }),
+        div(".minimap-label", {
+            style: {
+                position: "absolute",
+                top: "5px",
+                left: "5px",
+                color: "white",
+                "font-size": "11px",
+                "font-family": "Nova Flat",
+                "text-transform": "uppercase",
+                "letter-spacing": "1px",
+                padding: "0px 5px"
+            }
+        }, "Tactical View"),
+        // Camera viewport indicator
+        div(".viewport-status", {
+            style: {
+                position: "absolute",
+                bottom: "5px",
+                left: "5px",
+                color: "#71a1d1",
+                "font-size": "9px",
+                "font-family": "monospace",
+                padding: "2px 5px",
+                background: "rgba(0, 0, 0, 0.5)",
+                border: "1px solid rgba(113, 161, 209, 0.3)"
+            }
+        }, (()=>{
+            if (!state.camera || !state.camera.angle) return "VIEW: 3RD PERSON";
+            const cameraY = state.camera.angle.y;
+            // Below 190 = elevated, 190-240 = 3rd person, above 240 = top-down
+            if (cameraY > 240) return "VIEW: TOP-DOWN";
+            if (cameraY >= 190) return "VIEW: 3RD PERSON";
+            return "VIEW: ELEVATED";
+        })())
+    ]);
+};
+
+},{"4ef6bac7ab5afb6c":"2lXuw","fe9a161bb2c46b32":"5SuSv"}],"7ia0b":[function(require,module,exports) {
 "use strict";
 // lib
 const { interval, merge, of } = require("d9161c212f03c0c8");
@@ -10895,11 +11412,6 @@ const init = ({ canvas, state })=>{
         plane
     };
 };
-let cameraAngle = {
-    x: 45,
-    y: 210
-};
-let mouse = false;
 const render = ({ plane, scene, camera, effect, renderer, state, character, mixer, acts, guards })=>{
     // console.log(items);
     plane;
@@ -10929,7 +11441,7 @@ const render = ({ plane, scene, camera, effect, renderer, state, character, mixe
 // 	.map(image => imageUtil.getData(image, dim));
 // .map(imageUtil.simplifyData);
 let unhook = ()=>{};
-let hook = ({ state$, actions })=>{
+let hook = ({ state$, actions, minimap })=>{
     let subs = [];
     const init$ = interval(100).pipe(map(()=>document.querySelector("#view3d")), distinctUntilChanged(), filter((el)=>el), withLatestFrom(state$, (canvas, state)=>({
             canvas,
@@ -41236,265 +41748,6 @@ THREE.ColladaLoader.prototype = {
     }
 };
 
-},{}],"1fT3w":[function(require,module,exports) {
-"use strict";
-// lib
-const { Observable } = require("ceca75749931aa98");
-const { filter, share, withLatestFrom } = require("b951f29c417a8e4f");
-const raf = require("2e9a2e45ceca19d2");
-const tick = (cb)=>raf(function(dt) {
-        cb(dt);
-        tick(cb);
-    });
-const frame = ()=>new Observable((obs)=>tick((dt)=>obs.next(dt))).pipe(filter((dt)=>dt !== 0), share());
-const loop = (state$, node)=>frame(node).pipe(withLatestFrom(state$, (dt, state)=>({
-            dt,
-            state
-        })));
-module.exports = {
-    frame,
-    loop
-};
-
-},{"ceca75749931aa98":"hWUVi","b951f29c417a8e4f":"1cs2r","2e9a2e45ceca19d2":"7Jun9"}],"7Jun9":[function(require,module,exports) {
-var global = arguments[3];
-var now = require("8ac08eb46c52bf57"), root = typeof window === "undefined" ? global : window, vendors = [
-    "moz",
-    "webkit"
-], suffix = "AnimationFrame", raf = root["request" + suffix], caf = root["cancel" + suffix] || root["cancelRequest" + suffix];
-for(var i = 0; !raf && i < vendors.length; i++){
-    raf = root[vendors[i] + "Request" + suffix];
-    caf = root[vendors[i] + "Cancel" + suffix] || root[vendors[i] + "CancelRequest" + suffix];
-}
-// Some versions of FF have rAF but not cAF
-if (!raf || !caf) {
-    var last = 0, id = 0, queue = [], frameDuration = 1000 / 60;
-    raf = function(callback) {
-        if (queue.length === 0) {
-            var _now = now(), next = Math.max(0, frameDuration - (_now - last));
-            last = next + _now;
-            setTimeout(function() {
-                var cp = queue.slice(0);
-                // Clear queue here to prevent
-                // callbacks from appending listeners
-                // to the current frame's queue
-                queue.length = 0;
-                for(var i = 0; i < cp.length; i++){
-                    if (!cp[i].cancelled) try {
-                        cp[i].callback(last);
-                    } catch (e) {
-                        setTimeout(function() {
-                            throw e;
-                        }, 0);
-                    }
-                }
-            }, Math.round(next));
-        }
-        queue.push({
-            handle: ++id,
-            callback: callback,
-            cancelled: false
-        });
-        return id;
-    };
-    caf = function(handle) {
-        for(var i = 0; i < queue.length; i++)if (queue[i].handle === handle) queue[i].cancelled = true;
-    };
-}
-module.exports = function(fn) {
-    // Wrap in a new function to prevent
-    // `cancel` potentially being assigned
-    // to the native rAF function
-    return raf.call(root, fn);
-};
-module.exports.cancel = function() {
-    caf.apply(root, arguments);
-};
-module.exports.polyfill = function(object) {
-    if (!object) object = root;
-    object.requestAnimationFrame = raf;
-    object.cancelAnimationFrame = caf;
-};
-
-},{"8ac08eb46c52bf57":"lOoWL"}],"lOoWL":[function(require,module,exports) {
-var process = require("8e102ffac3078272");
-// Generated by CoffeeScript 1.12.2
-(function() {
-    var getNanoSeconds, hrtime, loadTime, moduleLoadTime, nodeLoadTime, upTime;
-    if (typeof performance !== "undefined" && performance !== null && performance.now) module.exports = function() {
-        return performance.now();
-    };
-    else if (typeof process !== "undefined" && process !== null && process.hrtime) {
-        module.exports = function() {
-            return (getNanoSeconds() - nodeLoadTime) / 1e6;
-        };
-        hrtime = process.hrtime;
-        getNanoSeconds = function() {
-            var hr;
-            hr = hrtime();
-            return hr[0] * 1e9 + hr[1];
-        };
-        moduleLoadTime = getNanoSeconds();
-        upTime = process.uptime() * 1e9;
-        nodeLoadTime = moduleLoadTime - upTime;
-    } else if (Date.now) {
-        module.exports = function() {
-            return Date.now() - loadTime;
-        };
-        loadTime = Date.now();
-    } else {
-        module.exports = function() {
-            return new Date().getTime() - loadTime;
-        };
-        loadTime = new Date().getTime();
-    }
-}).call(this);
-
-},{"8e102ffac3078272":"8MGn2"}],"8MGn2":[function(require,module,exports) {
-// shim for using process in browser
-var process = module.exports = {};
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-var cachedSetTimeout;
-var cachedClearTimeout;
-function defaultSetTimout() {
-    throw new Error("setTimeout has not been defined");
-}
-function defaultClearTimeout() {
-    throw new Error("clearTimeout has not been defined");
-}
-(function() {
-    try {
-        if (typeof setTimeout === "function") cachedSetTimeout = setTimeout;
-        else cachedSetTimeout = defaultSetTimout;
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === "function") cachedClearTimeout = clearTimeout;
-        else cachedClearTimeout = defaultClearTimeout;
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-})();
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) //normal enviroments in sane situations
-    return setTimeout(fun, 0);
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch (e) {
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch (e) {
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) //normal enviroments in sane situations
-    return clearTimeout(marker);
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e) {
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e) {
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) return;
-    draining = false;
-    if (currentQueue.length) queue = currentQueue.concat(queue);
-    else queueIndex = -1;
-    if (queue.length) drainQueue();
-}
-function drainQueue() {
-    if (draining) return;
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-    var len = queue.length;
-    while(len){
-        currentQueue = queue;
-        queue = [];
-        while(++queueIndex < len)if (currentQueue) currentQueue[queueIndex].run();
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-process.nextTick = function(fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) for(var i = 1; i < arguments.length; i++)args[i - 1] = arguments[i];
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) runTimeout(drainQueue);
-};
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function() {
-    this.fun.apply(null, this.array);
-};
-process.title = "browser";
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ""; // empty string to avoid regexp issues
-process.versions = {};
-function noop() {}
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-process.listeners = function(name) {
-    return [];
-};
-process.binding = function(name) {
-    throw new Error("process.binding is not supported");
-};
-process.cwd = function() {
-    return "/";
-};
-process.chdir = function(dir) {
-    throw new Error("process.chdir is not supported");
-};
-process.umask = function() {
-    return 0;
-};
-
 },{}],"2GmuD":[function(require,module,exports) {
 "use strict";
 // lib
@@ -44288,33 +44541,18 @@ THREE.MTLLoader.MaterialCreator.prototype = {
 const THREE = require("ade1dc8b7f4c8aa1");
 window.THREE = window.THREE || THREE;
 const degreeToRadiant = (deg)=>Math.PI / (180 / deg);
-const calcucalateAngle = (viewport, range)=>({
-        x: viewport.mouse.x / viewport.screen.width * range.h + range.hOffset,
-        y: viewport.mouse.y / viewport.screen.height * range.v + range.vOffset
-    });
 const init = ()=>{};
-let cameraAngle = {
-    x: 45,
-    y: 210
-};
-let mouse = false;
 const refresh = ({ camera, state })=>{
+    // Camera angle is now calculated in services/control/camera.js
+    const cameraAngle = state.camera.angle || {
+        x: 45,
+        y: 210
+    };
     const centerPos = new THREE.Vector3().fromArray(state.camera.followPlayer ? state.player.position : [
         0,
         0,
         0
     ]);
-    if (state.viewport.mouse.down) {
-        cameraAngle = {
-            x: 360 + (state.player.rotation - 90 - 45) % 360,
-            y: (state.camera.range.h + cameraAngle.y - (mouse ? (mouse.y - state.viewport.mouse.y) * 0.3 : 0)) % state.camera.range.h
-        };
-        // console.log(cameraAngle, mouse);
-        cameraAngle.y = Math.max(Math.min(cameraAngle.y, 260), 170);
-        mouse = {
-            ...state.viewport.mouse
-        };
-    } else mouse = false;
     const minDistance = 12;
     const distance = Math.min(Math.max(minDistance, state.camera.distance * ((cameraAngle.y - 180) / 90)), state.camera.distance);
     const lookAtPos = centerPos.clone().add({
@@ -44322,7 +44560,6 @@ const refresh = ({ camera, state })=>{
         y: 6 - 6 * ((cameraAngle.y - 180) / 90),
         z: 0
     });
-    // console.log(cameraAngle.y);
     camera.position.copy(lookAtPos.clone().add({
         // x
         x: Math.cos(degreeToRadiant(cameraAngle.x)) * Math.cos(degreeToRadiant(cameraAngle.y)) * distance,
@@ -44432,7 +44669,6 @@ const refresh = ({ scene, character, mixer, acts, state, camera })=>{
             walking = true;
             character.lookAt(newPos);
             if (character.position.distanceTo(newPos) >= 10) running = true;
-            // player.rotation.y -= 135;
             console.log(character.position.distanceTo(newPos));
         }
         character.position.copy(newPos);
@@ -44467,71 +44703,27 @@ const { map } = require("ac5ba03fbc8ab9b");
 const THREE = require("4d3222cbb77f7f9");
 window.THREE = window.THREE || THREE;
 let clock = new THREE.Clock();
-const routes = [
-    [
-        [
-            -10,
-            0.2,
-            -20
-        ],
-        [
-            20,
-            0.2,
-            -20
-        ]
-    ],
-    [
-        [
-            0,
-            0.2,
-            0
-        ],
-        [
-            -30,
-            0.2,
-            0
-        ]
-    ],
-    [
-        [
-            -20,
-            0.2,
-            20
-        ],
-        [
-            10,
-            0.2,
-            20
-        ],
-        [
-            10,
-            0.2,
-            40
-        ]
-    ]
-];
 const gltfLoader = require("263fedc1374edcea");
 const init = ()=>gltfLoader.load("assets/models/guard.glb").pipe(map((gltf)=>{
-        let animations = gltf.animations;
-        // console.log('123', guard, guard.clone());
-        // player.rotation.y = -180 * Math.PI / 180;
-        const guards = routes.map((route)=>{
-            // let model = new THREE.ObjectLoader().parse(guard.toJSON());
+        // Create 3 guard models (matching game state)
+        const guards = [
+            0,
+            1,
+            2
+        ].map((index)=>{
             let guard = gltfLoader.clone(gltf);
             let model = guard.scene;
             let animations = guard.animations;
             model.castShadow = true;
             model.receiveShadow = true;
             model.scale.set(4, 4, 4);
-            model.position.copy(new THREE.Vector3().fromArray(route[0]));
-            // model.lookAt(new THREE.Vector3().fromArray(route[1]));
             model.traverse(function(object) {
                 if (object.isMesh) {
                     object.castShadow = true;
                     object.receiveShadow = true;
                 }
             });
-            // skeleton
+            // Animation setup
             let skeleton = new THREE.SkeletonHelper(model);
             skeleton.visible = false;
             let mixer = new THREE.AnimationMixer(model);
@@ -44545,52 +44737,35 @@ const init = ()=>gltfLoader.load("assets/models/guard.glb").pipe(map((gltf)=>{
                 action.setEffectiveWeight(0);
                 action.play();
             });
-            model.route = route;
-            model.direction = 1;
-            model.mode = "idle";
-            model.frame = 0;
+            // Store guard ID to match with game state
+            model.guardId = `guard-${index + 1}`;
             return {
                 model,
                 mixer,
-                acts,
-                route
+                acts
             };
         });
         return guards;
     }));
 const refresh = ({ scene, guards, state })=>{
     let mixerUpdateDelta = clock.getDelta();
-    // console.log(guards);
-    guards.forEach((guard)=>{
-        // console.log(guard);
-        if (guard.model.mode === "walk") {
-            if (guard.model.position.distanceTo(new THREE.Vector3().fromArray(guard.model.route[guard.model.direction])) <= 0.12) {
-                guard.model.position.copy(new THREE.Vector3().fromArray(guard.model.route[guard.model.direction]));
-                if (guard.model.direction < guard.model.route.length - 1) guard.model.direction++;
-                else {
-                    guard.model.direction = 0;
-                    guard.model.route = guard.model.route.reverse();
-                    guard.model.mode = "idle";
-                }
-            // guard.model.lookAt(new THREE.Vector3().fromArray(guard.model.route[guard.model.direction]));
-            } else {
-                guard.model.lookAt(new THREE.Vector3().fromArray(guard.model.route[guard.model.direction]));
-                var direction = new THREE.Vector3();
-                guard.model.getWorldDirection(direction);
-                guard.model.position.add(direction.multiplyScalar(0.12));
-            }
+    // Sync 3D models with game state
+    if (state.game && state.game.guards) guards.forEach((guard)=>{
+        // Find corresponding game state guard
+        const gameGuard = state.game.guards.find((g)=>g.id === guard.model.guardId);
+        if (!gameGuard) return;
+        // Update position from game state
+        guard.model.position.copy(new THREE.Vector3().fromArray(gameGuard.position));
+        guard.model.rotation.y = gameGuard.rotation;
+        // Update animation based on mode
+        if (gameGuard.mode === "walk") {
             guard.acts[1].setEffectiveWeight(1);
             guard.acts[0].setEffectiveWeight(0);
         } else {
-            if (guard.model.frame <= 128) guard.model.frame++;
-            else {
-                guard.model.frame = 0;
-                guard.model.mode = "walk";
-            }
             guard.acts[1].setEffectiveWeight(0);
             guard.acts[0].setEffectiveWeight(1);
         }
-        // console.log(character, mixer, acts);
+        // Update animation mixer
         if (guard.mixer) guard.mixer.update(mixerUpdateDelta);
     });
     return guards;
@@ -50128,6 +50303,7 @@ const { map, filter, distinctUntilChanged, withLatestFrom, share } = require("ec
 // util
 const keyboard = require("5545823334eb637d");
 const time = require("3226b2edd720630f");
+const cameraControl = require("977154ab6a7d7baa");
 const getDirection = (keys)=>[
         (keys.left || keys.a) && 1 || (keys.right || keys.d) && -1 || 0,
         0,
@@ -50137,6 +50313,11 @@ const getForce = (keys)=>(keys.shift && 0.2 || 0.1) * (keys.c && 0.5 || 1) * (ke
 let unhook = ()=>{};
 const hook = ({ state$, actions })=>{
     let subs = [];
+    // Hook camera control (angle calculation)
+    cameraControl.hook({
+        state$,
+        actions
+    });
     // Watch keyboard input
     const pressedKeys$ = keyboard.watch([
         "left",
@@ -50150,6 +50331,11 @@ const hook = ({ state$, actions })=>{
         "d",
         "c"
     ]);
+    // Minimap toggle (M key)
+    subs.push(keyboard.on("m").subscribe(()=>actions.toggle([
+            "minimap",
+            "enabled"
+        ])));
     const directionForce$ = pressedKeys$.pipe(map((keys)=>(console.log("keys", keys), keys)), map((keys)=>({
             direction: getDirection(keys),
             force: getForce(keys)
@@ -50163,8 +50349,8 @@ const hook = ({ state$, actions })=>{
         ], keys.c)));
     // Movement control
     subs.push(time.frame().pipe(withLatestFrom(directionForce$, (t, df)=>df), filter(({ force })=>force > 0)).subscribe(({ direction, force })=>actions.move(direction, force)));
-    // Mouse rotation control
-    subs.push(time.frame().pipe(withLatestFrom(state$, (t, state)=>state), distinctUntilChanged((a, b)=>a.viewport.mouse === b.viewport.mouse), filter((state)=>state.viewport.mouse.down)).subscribe((state)=>actions.set([
+    // Mouse rotation control (horizontal camera rotation updates player facing)
+    subs.push(time.frame().pipe(withLatestFrom(state$, (t, state)=>state), distinctUntilChanged((a, b)=>a.viewport.mouse.changeX === b.viewport.mouse.changeX && a.viewport.mouse.down === b.viewport.mouse.down), filter((state)=>state.viewport.mouse.down)).subscribe((state)=>actions.set([
             "player",
             "rotation"
         ], Number((state.camera.range.h + state.player.rotation - state.viewport.mouse.changeX * 0.3) % state.camera.range.h))));
@@ -50172,14 +50358,21 @@ const hook = ({ state$, actions })=>{
     subs.push(directionForce$.pipe(distinctUntilChanged((a, b)=>a.force === b.force)).subscribe(({ force })=>actions.set("player", {
             force
         })));
-    unhook = ()=>subs.forEach((sub)=>sub.unsubscribe());
+    // Direction tracking
+    subs.push(directionForce$.pipe(distinctUntilChanged((a, b)=>a.direction.join(",") === b.direction.join(","))).subscribe(({ direction })=>actions.set("player", {
+            direction
+        })));
+    unhook = ()=>{
+        subs.forEach((sub)=>sub.unsubscribe());
+        cameraControl.unhook();
+    };
 };
 module.exports = {
     hook,
     unhook: ()=>unhook()
 };
 
-},{"ec7611b0f5d52a13":"1cs2r","5545823334eb637d":"9a2Wv","3226b2edd720630f":"1fT3w"}],"9a2Wv":[function(require,module,exports) {
+},{"ec7611b0f5d52a13":"1cs2r","5545823334eb637d":"9a2Wv","3226b2edd720630f":"1fT3w","977154ab6a7d7baa":"i4RaM"}],"9a2Wv":[function(require,module,exports) {
 "use strict";
 const { fromEvent, merge } = require("c4c1bd5ebcee6945");
 const { map, filter, scan, share, distinctUntilChanged } = require("4df81a3980bc04f1");
@@ -50208,6 +50401,214 @@ module.exports = {
     on
 };
 
-},{"c4c1bd5ebcee6945":"hWUVi","4df81a3980bc04f1":"1cs2r","5762286dc92b7bbd":"2lXuw"}]},["5AHcD","ebWYT"], "ebWYT", "parcelRequire4e78")
+},{"c4c1bd5ebcee6945":"hWUVi","4df81a3980bc04f1":"1cs2r","5762286dc92b7bbd":"2lXuw"}],"i4RaM":[function(require,module,exports) {
+"use strict";
+// lib
+const { withLatestFrom, distinctUntilChanged, filter } = require("d53c980da89d96f9");
+// util
+const time = require("e088eb1f845a0343");
+let cameraAngle = {
+    x: 45,
+    y: 210
+};
+let mouse = false;
+let subscriptions = [];
+let unhook = ()=>{};
+const hook = ({ state$, actions })=>{
+    // Track camera angle based on player rotation and mouse drag (for minimap visualization)
+    subscriptions.push(time.frame().pipe(withLatestFrom(state$, (t, state)=>state), distinctUntilChanged((a, b)=>a.viewport.mouse.down === b.viewport.mouse.down && a.viewport.mouse.y === b.viewport.mouse.y && a.player.rotation === b.player.rotation), filter((state)=>state.viewport.mouse.down)).subscribe((state)=>{
+        // Horizontal follows player rotation (which is updated by mouse drag in control/index.js)
+        cameraAngle.x = 360 + (state.player.rotation - 90 - 45) % 360;
+        // Vertical angle from mouse drag
+        cameraAngle.y = (state.camera.range.h + cameraAngle.y - (mouse ? (mouse.y - state.viewport.mouse.y) * 0.3 : 0)) % state.camera.range.h;
+        // Clamp vertical angle
+        cameraAngle.y = Math.max(Math.min(cameraAngle.y, 260), 170);
+        mouse = {
+            ...state.viewport.mouse
+        };
+        // Update state for minimap
+        actions.set([
+            "camera",
+            "angle"
+        ], cameraAngle);
+    }));
+    // Reset mouse tracking when mouse is released
+    subscriptions.push(time.frame().pipe(withLatestFrom(state$, (t, state)=>state), distinctUntilChanged((a, b)=>a.viewport.mouse.down === b.viewport.mouse.down), filter((state)=>!state.viewport.mouse.down)).subscribe(()=>{
+        mouse = false;
+    }));
+    // Update camera angle when not dragging (follows player rotation)
+    subscriptions.push(time.frame().pipe(withLatestFrom(state$, (t, state)=>state), distinctUntilChanged((a, b)=>a.player.rotation === b.player.rotation), filter((state)=>!state.viewport.mouse.down)).subscribe((state)=>{
+        cameraAngle.x = 360 + (state.player.rotation - 90 - 45) % 360;
+        actions.set([
+            "camera",
+            "angle"
+        ], cameraAngle);
+    }));
+    unhook = ()=>subscriptions.forEach((sub)=>sub.unsubscribe());
+};
+module.exports = {
+    hook,
+    unhook: ()=>unhook()
+};
+
+},{"d53c980da89d96f9":"1cs2r","e088eb1f845a0343":"1fT3w"}],"ei4So":[function(require,module,exports) {
+"use strict";
+// lib
+const { withLatestFrom } = require("9f450121ac15c20b");
+// util
+const time = require("b8ff9c9d89c0934a");
+let canvas = null;
+let ctx = null;
+const mapToCanvas = (worldPos, worldSize, canvasSize)=>{
+    // Convert world coordinates to canvas coordinates
+    // Assuming world is centered at 0,0
+    const halfWorld = worldSize / 2;
+    const normalized = (worldPos + halfWorld) / worldSize;
+    return normalized * canvasSize;
+};
+const render = (state)=>{
+    if (!canvas) {
+        canvas = document.getElementById("minimap-canvas");
+        if (!canvas) return; // Canvas not ready yet
+        ctx = canvas.getContext("2d");
+    }
+    const size = state.minimap.size;
+    const worldSize = 120; // Adjust based on your level size
+    // Clear canvas - darker blue background
+    ctx.fillStyle = "rgba(0, 20, 30, 0.95)";
+    ctx.fillRect(0, 0, size, size);
+    // Draw grid lines (subtle blue)
+    ctx.strokeStyle = "rgba(113, 161, 209, 0.15)";
+    ctx.lineWidth = 1;
+    const gridStep = size / 10;
+    for(let i = 0; i <= 10; i++){
+        ctx.beginPath();
+        ctx.moveTo(i * gridStep, 0);
+        ctx.lineTo(i * gridStep, size);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, i * gridStep);
+        ctx.lineTo(size, i * gridStep);
+        ctx.stroke();
+    }
+    // Draw guards (red dots) from game state
+    if (state.game && state.game.guards) state.game.guards.forEach((guard)=>{
+        const x = mapToCanvas(guard.position[0], worldSize, size);
+        const z = mapToCanvas(guard.position[2], worldSize, size);
+        // Guard glow
+        const gradient = ctx.createRadialGradient(x, z, 0, x, z, 6);
+        gradient.addColorStop(0, "rgba(255, 80, 80, 0.8)");
+        gradient.addColorStop(1, "rgba(255, 80, 80, 0)");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, z, 6, 0, Math.PI * 2);
+        ctx.fill();
+        // Draw dot
+        ctx.fillStyle = "#ff5050";
+        ctx.beginPath();
+        ctx.arc(x, z, 3, 0, Math.PI * 2);
+        ctx.fill();
+        // Draw facing direction (small line)
+        const dirLength = 10;
+        const angle = guard.rotation;
+        ctx.strokeStyle = "#ff5050";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x, z);
+        ctx.lineTo(x + Math.sin(angle) * dirLength, z + Math.cos(angle) * dirLength);
+        ctx.stroke();
+    });
+    // Draw player and camera info
+    if (state.player) {
+        const playerX = mapToCanvas(state.player.position[0], worldSize, size);
+        const playerZ = mapToCanvas(state.player.position[2], worldSize, size);
+        // Draw camera view area (3D cone projected to 2D)
+        if (state.camera && state.camera.angle) {
+            const cameraY = state.camera.angle.y;
+            // Camera direction is based on player.rotation (NOT affected by movement direction)
+            const cameraDir = (state.player.rotation - 45) * Math.PI / 180;
+            const viewDistance = 30;
+            ctx.fillStyle = "rgba(113, 161, 209, 0.1)";
+            ctx.strokeStyle = "rgba(113, 161, 209, 0.3)";
+            ctx.lineWidth = 1;
+            // Calculate how "top-down" the view is (0 = side view, 1 = directly above)
+            // cameraY: 170 (elevated) -> 220 (3rd person) -> 250+ (top-down)
+            const topDownness = Math.max(0, Math.min(1, (cameraY - 190) / 60));
+            // Transitional: Partial arc that transitions from wedge to circle
+            // FOV grows wider as we go more top-down
+            const baseFOV = 70;
+            const fov = baseFOV + topDownness * (360 - baseFOV);
+            const fovRad = fov * Math.PI / 180;
+            // Wedge closes as topDownness approaches 1
+            const wedgeClosure = Math.max(0, 1 - topDownness * 1.5);
+            ctx.beginPath();
+            if (wedgeClosure > 0) // Draw wedge that opens up as we go more top-down
+            ctx.moveTo(playerX, playerZ);
+            // Draw arc
+            const numPoints = Math.max(20, Math.floor(fov / 5));
+            for(let i = 0; i <= numPoints; i++){
+                const angle = cameraDir - fovRad / 2 + fovRad * i / numPoints;
+                const x = playerX + Math.sin(angle) * viewDistance;
+                const z = playerZ + Math.cos(angle) * viewDistance;
+                if (i === 0) ctx.lineTo(x, z);
+                else ctx.lineTo(x, z);
+            }
+            if (wedgeClosure > 0) ctx.lineTo(playerX, playerZ);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+        // Outer glow (blue)
+        const gradient = ctx.createRadialGradient(playerX, playerZ, 0, playerX, playerZ, 10);
+        gradient.addColorStop(0, "rgba(113, 161, 209, 0.9)");
+        gradient.addColorStop(1, "rgba(113, 161, 209, 0)");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(playerX, playerZ, 10, 0, Math.PI * 2);
+        ctx.fill();
+        // Player dot
+        ctx.fillStyle = "#71a1d1";
+        ctx.beginPath();
+        ctx.arc(playerX, playerZ, 5, 0, Math.PI * 2);
+        ctx.fill();
+        // Player facing direction (based on player.rotation + direction offset)
+        const dirLength = 15;
+        let facingAngle = state.player.rotation;
+        // If player is moving, calculate facing based on direction
+        // direction is [left/right, up/down, front/back]
+        if (state.player.direction && (state.player.direction[0] !== 0 || state.player.direction[2] !== 0)) {
+            // Calculate angle from direction vector: atan2(left/right, front/back)
+            const directionAngle = Math.atan2(state.player.direction[0], state.player.direction[2]) * (180 / Math.PI);
+            facingAngle = state.player.rotation + directionAngle;
+        }
+        // Subtract 45 degrees to correct the coordinate system offset
+        const playerAngle = (facingAngle - 45) * Math.PI / 180;
+        ctx.strokeStyle = "#71a1d1";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(playerX, playerZ);
+        ctx.lineTo(playerX + Math.sin(playerAngle) * dirLength, playerZ + Math.cos(playerAngle) * dirLength);
+        ctx.stroke();
+    }
+};
+let unhook = ()=>{};
+const hook = ({ state$, actions })=>{
+    let subs = [];
+    // Render minimap every frame
+    subs.push(time.frame().pipe(withLatestFrom(state$, (t, state)=>state)).subscribe((state)=>{
+        if (state.minimap && state.minimap.enabled) render(state);
+    }));
+    unhook = ()=>{
+        subs.forEach((sub)=>sub.unsubscribe());
+        canvas = null;
+        ctx = null;
+    };
+};
+module.exports = {
+    hook,
+    unhook: ()=>unhook()
+};
+
+},{"9f450121ac15c20b":"1cs2r","b8ff9c9d89c0934a":"1fT3w"}]},["5AHcD","ebWYT"], "ebWYT", "parcelRequire4e78")
 
 //# sourceMappingURL=index.739bf03c.js.map

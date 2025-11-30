@@ -92,13 +92,11 @@ const refresh = ({scene, character, mixer, acts, state, camera}) => {
 	if (character && character.position) {
 		if (state.camera.followPlayer) {
 			character.rotation.set(0, degreeToRadiant(state.player.rotation), 0);
-			// lookAwayFrom(character, camera);
 		}
 		if (character.position.distanceTo(newPos) > 0) {
 			walking = true;
 			character.lookAt(newPos);
 			if (character.position.distanceTo(newPos) >= 10) running = true;
-			// player.rotation.y -= 135;
 			console.log(character.position.distanceTo(newPos));
 		}
 		character.position.copy(newPos);

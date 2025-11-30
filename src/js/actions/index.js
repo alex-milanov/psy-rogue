@@ -2,9 +2,10 @@
 
 const {obj, arr} = require('iblokz-data');
 
-// namespaces=
+// namespaces
 const counter = require('./counter');
 const level = require('./level');
+const game = require('../services/game');
 
 // initial
 const initial = {
@@ -16,7 +17,8 @@ const initial = {
 			v: 90,
 			vOffset: -80
 		},
-		followPlayer: true
+		followPlayer: true,
+		angle: {x: 45, y: 210}
 	},
 	player: {
 		position: [-10, 0.2, 35],
@@ -42,7 +44,12 @@ const initial = {
 	controls: {
 		on: true,
 		camera: false
-	}
+	},
+	minimap: {
+		enabled: true,
+		size: 200
+	},
+	game: game.actions.initial
 };
 
 // actions

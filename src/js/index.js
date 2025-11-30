@@ -15,10 +15,12 @@ let ui = require('./ui');
 let actions$;
 
 // services
+let game = require('./services/game');
 let scene = require('./services/scene');
 let viewport = require('./services/viewport.js');
 let audio = require('./services/audio');
 let control = require('./services/control');
+let minimap = require('./services/minimap');
 
 // hot reloading
 if (module.hot) {
@@ -80,7 +82,9 @@ state$
 	.subscribe(state => console.log(state));
 
 // services
-scene.hook({state$, actions});
+game.hook({state$, actions});
+minimap.hook({state$, actions});
+scene.hook({state$, actions, minimap});
 viewport.hook({state$, actions});
 audio.hook({state$, actions});
 control.hook({state$, actions});

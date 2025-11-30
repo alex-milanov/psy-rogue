@@ -7,6 +7,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Tactical Minimap** (toggle with M key)
+  - Real-time player and guard positions with facing indicators
+  - Dynamic camera FOV visualization (wedge → circle transition)
+  - View mode indicator (TOP-DOWN/ELEVATED/3RD PERSON)
+  - 3D cone projection math for smooth FOV transitions
+  - Hybrid Snabbdom UI + Canvas rendering
+- **Game/Scene Architecture Separation**
+  - `services/game/` - Pure game logic and guard AI
+  - `services/control/camera.js` - Camera angle calculation
+  - Clean state flow: Control/Game → State → Scene/Minimap
+  - Guard AI with patrol routes, idle/walk states
+- **Minimap Services**
+  - `ui/minimap/` - Snabbdom UI container
+  - `services/minimap/` - Canvas 2D rendering service
+- **Debug Enhancements**
+  - Player debug info in controls panel
+  - Position, rotation, direction vectors
+  - Camera angles and force display
+- **Documentation**
+  - `brainstorming/game-scene-separation.md` - Architecture pattern
+  - `summaries/2025-11-30-3-minimap-and-architecture.md` - Session summary
+  - Inspirations tracking (Vampire: Redemption, Syndicate)
 - Modern build system with Parcel 2.12.0
 - pnpm package manager with hoisting configuration
 - `.parcelrc` configuration for static files and resolvers
@@ -23,6 +45,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `.npmrc` for pnpm configuration
 
 ### Changed
+- **Architecture**: Implemented clean game/scene/control separation
+  - Scene service now purely visualizes state (no game logic)
+  - Guard AI moved from scene to game service
+  - Camera angle calculation moved to control service
+- **Guard System**: Refactored to state-driven approach
+  - Guards managed in `state.game.guards` array
+  - Scene syncs 3D models to game state by ID
+  - Minimap reads directly from game state
+- **Camera System**: Split into control (calculation) and scene (visualization)
+  - Control service handles mouse input and angle updates
+  - Scene service reads `state.camera.angle` for positioning
+- **Player Rotation**: Now reflects actual facing based on movement direction
+  - Uses `state.player.direction` vector for accurate facing
+  - Coordinate system corrections for minimap display
 - **Build System**: Browserify → Parcel 2.12.0
 - **Package Manager**: npm → pnpm
 - **RxJS**: 4.x → 7.8.2 (complete API migration)
@@ -43,6 +79,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `bin/sass-paths.js` (no longer needed)
 
 ### Fixed
+- **Minimap Coordinate System**: Applied -45° correction for accurate direction display
+- **Camera FOV Visualization**: Smooth 3D cone projection (no more sudden transitions)
+- **Guard Visualization**: Real-time position and rotation updates on minimap
+- **Player Direction**: Correctly calculates facing from direction vector [x,y,z]
 - RxJS Observable creation (`Observable.create` → `new Observable`)
 - RxJS operators now use pipe syntax
 - Observer methods (`onNext` → `next`, `onCompleted` → `complete`)

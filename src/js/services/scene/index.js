@@ -76,9 +76,6 @@ const init = ({canvas, state}) => {
 	return {scene, light: false, renderer, effect, camera, canvas: renderer.domElement, plane};
 };
 
-let cameraAngle = {x: 45, y: 210};
-let mouse = false;
-
 const render = ({plane, scene, camera, effect, renderer, state, character, mixer, acts, guards}) => {
 	// console.log(items);
 	if (plane) {
@@ -101,7 +98,7 @@ const render = ({plane, scene, camera, effect, renderer, state, character, mixer
 	// .map(imageUtil.simplifyData);
 
 let unhook = () => {};
-let hook = ({state$, actions}) => {
+let hook = ({state$, actions, minimap}) => {
 	let subs = [];
 
 	const init$ = interval(100)

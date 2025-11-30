@@ -74,9 +74,15 @@ module.exports = ({state, actions}) => form('.controls', [
 		div(`Mouse: ${state.viewport.mouse.x} x ${state.viewport.mouse.y}`)
 	]),
 	fieldset([].concat(
-		legend('Detection'),
-		div(`Movement: ${state.player.force * 100}`),
-		div(`Rotation: ${state.player.rotation.toFixed()}`),
+		legend('Player Debug'),
+		div(`Position: [${state.player.position.map(v => v.toFixed(1)).join(', ')}]`),
+		div(`Rotation: ${state.player.rotation.toFixed(1)}°`),
+		div(`Direction: [${state.player.direction.join(', ')}]`),
+		state.camera && state.camera.angle 
+			? div(`Camera: [${state.camera.angle.x.toFixed(1)}°, ${state.camera.angle.y.toFixed(1)}°]`)
+			: div(),
+		div(`Force: ${(state.player.force * 100).toFixed(0)}%`),
+		div(`Crouching: ${state.player.crouching ? 'Yes' : 'No'}`),
 		div(`Tile: ${
 			parseInt((state.player.position[2] - 2.5) / 5 + state.level.map.length / 2, 10)
 		} x ${
