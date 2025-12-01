@@ -7,6 +7,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Brainstorming Organization**
+  - `brainstorming/README.md` - Navigation guide for design docs
+  - `brainstorming/architecture/` - Architecture patterns and decisions
+  - `brainstorming/design/` - Game design documents
+- **Level Generation Planning**
+  - `brainstorming/design/levels/level-generation-detailed-plan.md`
+    * Two level types: Outdoor compounds (Liberty Island style) & Interior facilities (Oni style)
+    * Detailed algorithms for procedural generation (BSP, Voronoi, cellular automata)
+    * Multi-phase implementation roadmap
+    * Asset requirements and resource references (Three.js examples, kenney.nl)
+  - `brainstorming/design/levels/liberty-island-mvp.md`
+    * MVP scope for initial compound level
+    * Multiple navigation paths (main gate, side entrance, rooftop)
+    * Optional objectives and non-hostile NPC interaction
+    * Asset procurement guide for outdoor environments
+- **Music System Design**
+  - `brainstorming/design/audio-music-system.md`
+    * Three dynamic music states: Ambient, Tension, Combat
+    * State transition logic based on guard detection/combat
+    * Inspired by Syndicate and Deus Ex soundtracks
+    * Implementation phases and asset sources (freesound.org, Incompetech, LMMS)
 - **Tactical Minimap** (toggle with M key)
   - Real-time player and guard positions with facing indicators
   - Dynamic camera FOV visualization (wedge → circle transition)
@@ -26,9 +47,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Position, rotation, direction vectors
   - Camera angles and force display
 - **Documentation**
-  - `brainstorming/game-scene-separation.md` - Architecture pattern
+  - `brainstorming/architecture/game-scene-separation.md` - Architecture pattern
   - `summaries/2025-11-30-3-minimap-and-architecture.md` - Session summary
-  - Inspirations tracking (Vampire: Redemption, Syndicate)
+  - Inspirations tracking (Vampire: Redemption, Syndicate, Deus Ex, GTA 3, Syndicate 1993, Diablo 1/2)
 - Modern build system with Parcel 2.12.0
 - pnpm package manager with hoisting configuration
 - `.parcelrc` configuration for static files and resolvers
@@ -38,13 +59,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `summaries/` folder for project documentation
   - Initial project discovery document
   - Dev stack migration document
-- `brainstorming/` folder for design ideas
-  - Camera and view systems (GTA/Syndicate inspiration)
-  - Syndicate influences (missions, augments, persuasion)
-  - Quick wins roadmap
 - `.npmrc` for pnpm configuration
 
 ### Changed
+- **Brainstorming Structure**: Reorganized into `architecture/` and `design/` subfolders
+  - Consolidated scattered brainstorming docs into organized hierarchy
+  - Moved architecture patterns to dedicated folder
+  - Grouped design docs by category (levels, audio, etc.)
 - **Architecture**: Implemented clean game/scene/control separation
   - Scene service now purely visualizes state (no game logic)
   - Guard AI moved from scene to game service
@@ -69,8 +90,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Simplified HMR to handle only actions and UI
 - Updated README to be more concise
 - Font Awesome import path for Parcel compatibility
+- Updated project summaries with latest changes
 
 ### Removed
+- **Old Brainstorming Files** (consolidated into organized structure)
+  - `brainstorming/camera-and-view-systems.md`
+  - `brainstorming/game-scene-separation.md`
+  - `brainstorming/inspirations.md`
+  - `brainstorming/level-improvements-phase1.md`
+  - `brainstorming/quick-wins.md`
+  - `brainstorming/syndicate-influences.md`
+  - `brainstorming/threejs-upgrade-plan.md`
+  - `brainstorming/world-structure.md`
 - Browserify, Watchify, browserify-hmr
 - node-sass
 - Bourbon and Bourbon Neat
