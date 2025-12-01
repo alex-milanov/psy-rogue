@@ -15,7 +15,7 @@ const time = require('../../util/time.js');
 
 const {obj, fn} = require('iblokz-data');
 
-const level = require('./level');
+const {loadLevel} = require('./level');
 const _camera = require('./camera');
 const _character = require('./character');
 const npcs = require('./npcs');
@@ -71,7 +71,7 @@ const init = ({canvas, state}) => {
 	canvas.innerHTML = '';
 	canvas.appendChild(renderer.domElement);
 
-	level.init({scene, state});
+	loadLevel({scene, state});
 
 	return {scene, light: false, renderer, effect, camera, canvas: renderer.domElement, plane};
 };
@@ -137,10 +137,22 @@ let hook = ({state$, actions, minimap}) => {
 			})
 		);
 
+	const levelChange$ = state$.pipe(
+		distinctUntilChanged(state => state.level.needsReload),
+		filter(state => state.level.needsReload),
+		map(state => sceneState => {
+			console.log('level changed', state);
+			loadLevel({scene: sceneState.scene, state});
+			actions.set(['level', 'needsReload'], false);
+			return sceneState;
+		})
+	);
+
 	const sceneState$ = merge(
 		init$,
 		character$,
-		npcs$
+		npcs$,
+		levelChange$
 	)
 		.pipe(
 			map(reducer => (console.log(reducer), reducer)),

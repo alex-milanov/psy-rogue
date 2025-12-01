@@ -8,6 +8,9 @@ const {
 // components
 // const counter = require('./counter');
 
+const levelGen = require('../../util/levelGen');
+const levelGenDebug = require('../../util/levelGenDebug');
+
 const {obj} = require('iblokz-data');
 
 const inputControl = ({title, type, value, path}, actions) => div([
@@ -83,7 +86,8 @@ module.exports = ({state, actions}) => form('.controls', [
 			: div(),
 		div(`Force: ${(state.player.force * 100).toFixed(0)}%`),
 		div(`Crouching: ${state.player.crouching ? 'Yes' : 'No'}`),
-		div(`Tile: ${
+		// Only show tile info for grid-based levels
+		state.level.map ? div(`Tile: ${
 			parseInt((state.player.position[2] - 2.5) / 5 + state.level.map.length / 2, 10)
 		} x ${
 			parseInt((state.player.position[0] - 2.5) / 5 + state.level.map[0].length / 2, 10)
@@ -94,6 +98,26 @@ module.exports = ({state, actions}) => form('.controls', [
 			][
 				parseInt((state.player.position[0] - 2.5) / 5 + state.level.map[0].length / 2, 10)
 			]]
-		}`)
-	))
+		}`) : div()
+	)),
+	fieldset([
+		legend('Level Controls'),
+		div(`Current: ${state.level.name || 'Grid-based Level'}`),
+		button(`[type="button"]`, {
+			on: {
+				click: () => {
+					const levelData = levelGen.generateCompound({
+						gridSize: 29,
+						tileSize: 5,
+						buildingCount: 3,
+						density: 1.0
+					});
+					console.log(levelGenDebug.gridToASCII(levelData));
+					console.log('Player Start:', levelData.playerStart);
+					console.log('Guards:', levelData.guards);
+					actions.level.load(levelData.map, levelData.assets, levelData.playerStart, levelData.guards);
+				}
+			}
+		}, 'Load Procedural Level')
+	])
 ]);

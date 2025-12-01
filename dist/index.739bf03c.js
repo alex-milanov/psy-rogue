@@ -585,7 +585,7 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 
 },{}],"ebWYT":[function(require,module,exports) {
 // lib
-const { map, distinctUntilChanged } = require("6295082dc10ffab7");
+const { map, distinctUntilChanged, filter } = require("6295082dc10ffab7");
 // iblokz
 const vdom = require("be3ba22bdbdef716");
 const { obj, arr } = require("84a81e6e1cfcc506");
@@ -647,12 +647,21 @@ if (module.hot) {
 // });
 }
 // Log actions for debugging
-actions.stream.subscribe((action)=>{
-    action.path && console.log(action.path.join("."), action.payload);
-// console.log('Action:', action);
-});
+actions.stream.pipe(filter((action)=>action.path && [
+        "game",
+        "viewport.mouse"
+    ].indexOf([].concat(action.payload[0]).join(".")) === -1)).subscribe((action)=>console.log(action.path.join("."), [].concat(action.payload[0]).join("."), action.payload));
 // logging
-state$.pipe(map((state)=>obj.filter(state, (key)=>key !== "viewport")), distinctUntilChanged()).subscribe((state)=>console.log(state));
+state$.pipe(map((state)=>obj.filter(state, (key)=>[
+            "game",
+            "viewport"
+        ].indexOf(key) === -1)), distinctUntilChanged((a, b)=>obj.equals(obj.filter(a, (key)=>[
+            "game",
+            "viewport"
+        ].indexOf(key) === -1), obj.filter(b, (key)=>[
+            "game",
+            "viewport"
+        ].indexOf(key) === -1)))).subscribe((state)=>console.log(state));
 // services
 game.hook({
     state$,
@@ -686,7 +695,7 @@ const ui$ = state$.pipe(map((state)=>ui({
     })));
 vdom.patchStream(ui$, "#ui");
 
-},{"6295082dc10ffab7":"1cs2r","be3ba22bdbdef716":"5SuSv","84a81e6e1cfcc506":"2lXuw","2ce56a28465047ff":"deOrm","fd6dd62d6ed239cb":"ccGLY","708dd545cf97b855":"5ppKY","61a906e6c15865d9":"7ia0b","9c1dd700a3dfbfe7":"jz7zu","857d912d3b1e9c60":"iNo8a","a648e0b05c5a466f":"6beJI","3fa95d9e0aa0bda3":"ei4So","e3aca16aa9bf85a6":"mVKxe"}],"1cs2r":[function(require,module,exports) {
+},{"6295082dc10ffab7":"1cs2r","be3ba22bdbdef716":"5SuSv","84a81e6e1cfcc506":"2lXuw","2ce56a28465047ff":"deOrm","fd6dd62d6ed239cb":"ccGLY","708dd545cf97b855":"5ppKY","e3aca16aa9bf85a6":"mVKxe","61a906e6c15865d9":"7ia0b","9c1dd700a3dfbfe7":"jz7zu","857d912d3b1e9c60":"iNo8a","a648e0b05c5a466f":"6beJI","3fa95d9e0aa0bda3":"ei4So"}],"1cs2r":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "audit", ()=>(0, _audit.audit));
@@ -9509,30 +9518,31 @@ module.exports = {
 
 },{"ced435be652a83a5":"2lXuw"}],"daXoL":[function(require,module,exports) {
 const initial = {
+    needsReload: false,
     map: [
         [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
         ],
         [
-            0,
+            2,
             0,
             0,
             0,
@@ -9550,10 +9560,10 @@ const initial = {
             0,
             0,
             1,
-            1
+            2
         ],
         [
-            0,
+            2,
             0,
             0,
             0,
@@ -9571,10 +9581,10 @@ const initial = {
             0,
             0,
             1,
-            1
+            2
         ],
         [
-            0,
+            2,
             0,
             0,
             0,
@@ -9592,10 +9602,10 @@ const initial = {
             0,
             0,
             1,
-            1
+            2
         ],
         [
-            0,
+            2,
             0,
             0,
             0,
@@ -9613,10 +9623,10 @@ const initial = {
             0,
             0,
             1,
-            1
+            2
         ],
         [
-            0,
+            2,
             0,
             0,
             0,
@@ -9634,10 +9644,10 @@ const initial = {
             0,
             0,
             1,
-            1
+            2
         ],
         [
-            0,
+            2,
             0,
             0,
             0,
@@ -9655,10 +9665,10 @@ const initial = {
             0,
             0,
             1,
-            1
+            2
         ],
         [
-            0,
+            2,
             0,
             0,
             0,
@@ -9676,10 +9686,10 @@ const initial = {
             0,
             0,
             1,
-            1
+            2
         ],
         [
-            0,
+            2,
             0,
             0,
             0,
@@ -9697,10 +9707,10 @@ const initial = {
             0,
             0,
             1,
-            1
+            2
         ],
         [
-            0,
+            2,
             0,
             0,
             0,
@@ -9718,10 +9728,10 @@ const initial = {
             0,
             0,
             1,
-            1
+            2
         ],
         [
-            0,
+            2,
             0,
             0,
             0,
@@ -9739,12 +9749,12 @@ const initial = {
             0,
             0,
             1,
-            1
+            2
         ],
         [
+            2,
             0,
             0,
-            0,
             1,
             1,
             1,
@@ -9760,12 +9770,12 @@ const initial = {
             1,
             1,
             1,
-            1
+            2
         ],
         [
+            2,
             0,
             0,
-            0,
             1,
             1,
             1,
@@ -9781,9 +9791,20 @@ const initial = {
             1,
             1,
             1,
-            1
+            2
         ],
         [
+            2,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
             0,
             0,
             0,
@@ -9791,20 +9812,20 @@ const initial = {
             1,
             0,
             0,
-            0,
-            0,
-            1,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1,
-            0,
-            0,
-            0
+            2
         ],
         [
+            2,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
             0,
             0,
             0,
@@ -9812,20 +9833,20 @@ const initial = {
             1,
             0,
             0,
-            0,
-            0,
-            1,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1,
-            0,
-            0,
-            0
+            2
         ],
         [
+            2,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
             0,
             0,
             0,
@@ -9833,23 +9854,12 @@ const initial = {
             1,
             0,
             0,
-            0,
-            0,
-            1,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1,
-            0,
-            0,
-            0
+            2
         ],
         [
+            2,
             0,
             0,
-            0,
             1,
             1,
             1,
@@ -9865,12 +9875,12 @@ const initial = {
             1,
             1,
             1,
-            1
+            2
         ],
         [
+            2,
             0,
             0,
-            0,
             1,
             1,
             1,
@@ -9886,238 +9896,238 @@ const initial = {
             1,
             1,
             1,
-            1
+            2
         ],
         [
+            2,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
             0,
             0,
             0,
             1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1
+            2
         ],
         [
+            2,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
             0,
             0,
             0,
             1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1
+            2
         ],
         [
+            2,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
             0,
             0,
             0,
             1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1
+            2
         ],
         [
+            2,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
             0,
             0,
             0,
             1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1
+            2
         ],
         [
+            2,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
             0,
             0,
             0,
             1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1
+            2
         ],
         [
+            2,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
             0,
             0,
             0,
             1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1
+            2
         ],
         [
+            2,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
             0,
             0,
             0,
             1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1
+            2
         ],
         [
+            2,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
             0,
             0,
             0,
             1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1
+            2
         ],
         [
+            2,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
             0,
             0,
             0,
             1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1
+            2
         ],
         [
+            2,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
             0,
             0,
             0,
             1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1
+            2
         ],
         [
-            0,
-            0,
-            0,
-            1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
+            2,
+            2,
             0,
             1,
-            1
+            1,
+            0,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
         ]
     ],
     assets: [
@@ -10732,8 +10742,19 @@ const initial = {
         ]
     ]
 };
+const load = (map, assets, playerStart, guards)=>(state)=>({
+            ...state,
+            level: {
+                map,
+                assets,
+                needsReload: true,
+                playerStart,
+                guards
+            }
+        });
 module.exports = {
-    initial
+    initial,
+    load
 };
 
 },{}],"mVKxe":[function(require,module,exports) {
@@ -11190,6 +11211,8 @@ module.exports = ({ state, actions })=>section("#ui", [
 const { header, h1, section, button, span, canvas, form, input, label, legend, fieldset, div, i } = require("50e7f413eccad82c");
 // components
 // const counter = require('./counter');
+const levelGen = require("22b5d692812b28eb");
+const levelGenDebug = require("a5215d2c154819d0");
 const { obj } = require("90e5952e7690b9fe");
 const inputControl = ({ title, type, value, path }, actions)=>div([
         label({
@@ -11260,13 +11283,815 @@ module.exports = ({ state, actions })=>form(".controls", [
             div(`Size: ${state.viewport.screen.width} x ${state.viewport.screen.height}`),
             div(`Mouse: ${state.viewport.mouse.x} x ${state.viewport.mouse.y}`)
         ]),
-        fieldset([].concat(legend("Player Debug"), div(`Position: [${state.player.position.map((v)=>v.toFixed(1)).join(", ")}]`), div(`Rotation: ${state.player.rotation.toFixed(1)}\xb0`), div(`Direction: [${state.player.direction.join(", ")}]`), state.camera && state.camera.angle ? div(`Camera: [${state.camera.angle.x.toFixed(1)}\xb0, ${state.camera.angle.y.toFixed(1)}\xb0]`) : div(), div(`Force: ${(state.player.force * 100).toFixed(0)}%`), div(`Crouching: ${state.player.crouching ? "Yes" : "No"}`), div(`Tile: ${parseInt((state.player.position[2] - 2.5) / 5 + state.level.map.length / 2, 10)} x ${parseInt((state.player.position[0] - 2.5) / 5 + state.level.map[0].length / 2, 10)}: ${[
+        fieldset([].concat(legend("Player Debug"), div(`Position: [${state.player.position.map((v)=>v.toFixed(1)).join(", ")}]`), div(`Rotation: ${state.player.rotation.toFixed(1)}\xb0`), div(`Direction: [${state.player.direction.join(", ")}]`), state.camera && state.camera.angle ? div(`Camera: [${state.camera.angle.x.toFixed(1)}\xb0, ${state.camera.angle.y.toFixed(1)}\xb0]`) : div(), div(`Force: ${(state.player.force * 100).toFixed(0)}%`), div(`Crouching: ${state.player.crouching ? "Yes" : "No"}`), // Only show tile info for grid-based levels
+        state.level.map ? div(`Tile: ${parseInt((state.player.position[2] - 2.5) / 5 + state.level.map.length / 2, 10)} x ${parseInt((state.player.position[0] - 2.5) / 5 + state.level.map[0].length / 2, 10)}: ${[
             "grass",
             "pavement"
-        ][state.level.map[parseInt((state.player.position[2] - 2.5) / 5 + state.level.map.length / 2, 10)][parseInt((state.player.position[0] - 2.5) / 5 + state.level.map[0].length / 2, 10)]]}`)))
+        ][state.level.map[parseInt((state.player.position[2] - 2.5) / 5 + state.level.map.length / 2, 10)][parseInt((state.player.position[0] - 2.5) / 5 + state.level.map[0].length / 2, 10)]]}`) : div())),
+        fieldset([
+            legend("Level Controls"),
+            div(`Current: ${state.level.name || "Grid-based Level"}`),
+            button(`[type="button"]`, {
+                on: {
+                    click: ()=>{
+                        const levelData = levelGen.generateCompound({
+                            gridSize: 29,
+                            tileSize: 5,
+                            buildingCount: 3,
+                            density: 1.0
+                        });
+                        console.log(levelGenDebug.gridToASCII(levelData));
+                        console.log("Player Start:", levelData.playerStart);
+                        console.log("Guards:", levelData.guards);
+                        actions.level.load(levelData.map, levelData.assets, levelData.playerStart, levelData.guards);
+                    }
+                }
+            }, "Load Procedural Level")
+        ])
     ]);
 
-},{"50e7f413eccad82c":"5SuSv","90e5952e7690b9fe":"2lXuw"}],"cIXOv":[function(require,module,exports) {
+},{"50e7f413eccad82c":"5SuSv","90e5952e7690b9fe":"2lXuw","22b5d692812b28eb":"9v4cw","a5215d2c154819d0":"e19CZ"}],"9v4cw":[function(require,module,exports) {
+"use strict";
+/**
+ * Procedural Level Generation Utilities
+ * Generates Liberty Island-style compound layouts
+ */ /**
+ * Generate perimeter walls with gate
+ */ const generatePerimeter = (size, gateWidth = 16, gateSide = "west")=>{
+    const wallThickness = 4;
+    const wallHeight = 8;
+    const halfSize = size / 2;
+    const walls = [];
+    // North wall
+    walls.push({
+        id: "wall-north",
+        pos: [
+            0,
+            -halfSize + wallThickness / 2
+        ],
+        size: [
+            size,
+            wallThickness
+        ],
+        height: wallHeight
+    });
+    // South wall
+    walls.push({
+        id: "wall-south",
+        pos: [
+            0,
+            halfSize - wallThickness / 2
+        ],
+        size: [
+            size,
+            wallThickness
+        ],
+        height: wallHeight
+    });
+    // East wall
+    walls.push({
+        id: "wall-east",
+        pos: [
+            halfSize - wallThickness / 2,
+            0
+        ],
+        size: [
+            wallThickness,
+            size
+        ],
+        height: wallHeight
+    });
+    // West wall (with gate opening)
+    const gateOffset = gateWidth / 2;
+    walls.push({
+        id: "wall-west-north",
+        pos: [
+            -halfSize + wallThickness / 2,
+            -gateOffset - (halfSize - gateOffset) / 2
+        ],
+        size: [
+            wallThickness,
+            halfSize - gateOffset
+        ],
+        height: wallHeight
+    });
+    walls.push({
+        id: "wall-west-south",
+        pos: [
+            -halfSize + wallThickness / 2,
+            gateOffset + (halfSize - gateOffset) / 2
+        ],
+        size: [
+            wallThickness,
+            halfSize - gateOffset
+        ],
+        height: wallHeight
+    });
+    return {
+        walls,
+        gate: {
+            pos: [
+                -halfSize,
+                0
+            ],
+            size: [
+                wallThickness,
+                gateWidth
+            ],
+            orientation: gateSide
+        }
+    };
+};
+/**
+ * Generate building positions
+ * Returns array of buildings with positions, avoiding overlaps
+ */ const generateBuildings = (count, compoundSize, minSize = 15, maxSize = 25)=>{
+    const buildings = [];
+    const margin = 20; // Distance from perimeter
+    const spacing = 15; // Min spacing between buildings
+    const buildingTypes = [
+        "admin",
+        "barracks",
+        "storage",
+        "warehouse",
+        "lab"
+    ];
+    for(let i = 0; i < count; i++){
+        let attempts = 0;
+        let validPosition = false;
+        let building;
+        while(!validPosition && attempts < 50){
+            const width = minSize + Math.random() * (maxSize - minSize);
+            const depth = minSize + Math.random() * (maxSize - minSize);
+            const height = 10 + Math.random() * 8;
+            const x = (Math.random() - 0.5) * (compoundSize - margin * 2 - width);
+            const z = (Math.random() - 0.5) * (compoundSize - margin * 2 - depth);
+            building = {
+                id: `building-${i + 1}`,
+                pos: [
+                    Math.round(x),
+                    Math.round(z)
+                ],
+                size: [
+                    Math.round(width),
+                    Math.round(depth)
+                ],
+                height: Math.round(height),
+                type: buildingTypes[i % buildingTypes.length]
+            };
+            // Check for overlaps
+            validPosition = true;
+            for (const existingBuilding of buildings){
+                const dx = Math.abs(building.pos[0] - existingBuilding.pos[0]);
+                const dz = Math.abs(building.pos[1] - existingBuilding.pos[1]);
+                const minDx = (building.size[0] + existingBuilding.size[0]) / 2 + spacing;
+                const minDz = (building.size[1] + existingBuilding.size[1]) / 2 + spacing;
+                if (dx < minDx && dz < minDz) {
+                    validPosition = false;
+                    break;
+                }
+            }
+            attempts++;
+        }
+        if (validPosition) buildings.push(building);
+    }
+    return buildings;
+};
+/**
+ * Generate pathway network connecting buildings and gate
+ */ const generatePathways = (buildings, compoundSize, gatePos)=>{
+    const pathways = [];
+    const pathWidth = 4;
+    const halfSize = compoundSize / 2;
+    // Main path from gate to center
+    pathways.push({
+        id: "path-entry",
+        pos: [
+            gatePos[0] / 2,
+            0
+        ],
+        size: [
+            Math.abs(gatePos[0]),
+            pathWidth
+        ],
+        orientation: "horizontal"
+    });
+    // Perimeter pathway (inner loop)
+    const perimeterOffset = 15;
+    // North path
+    pathways.push({
+        id: "path-perimeter-north",
+        pos: [
+            0,
+            -halfSize + perimeterOffset
+        ],
+        size: [
+            compoundSize - 2 * perimeterOffset,
+            pathWidth
+        ],
+        orientation: "horizontal"
+    });
+    // South path
+    pathways.push({
+        id: "path-perimeter-south",
+        pos: [
+            0,
+            halfSize - perimeterOffset
+        ],
+        size: [
+            compoundSize - 2 * perimeterOffset,
+            pathWidth
+        ],
+        orientation: "horizontal"
+    });
+    // East path
+    pathways.push({
+        id: "path-perimeter-east",
+        pos: [
+            halfSize - perimeterOffset,
+            0
+        ],
+        size: [
+            pathWidth,
+            compoundSize - 2 * perimeterOffset
+        ],
+        orientation: "vertical"
+    });
+    // West path
+    pathways.push({
+        id: "path-perimeter-west",
+        pos: [
+            -halfSize + perimeterOffset,
+            0
+        ],
+        size: [
+            pathWidth,
+            compoundSize - 2 * perimeterOffset
+        ],
+        orientation: "vertical"
+    });
+    // Connect buildings to nearby paths
+    buildings.forEach((building, idx)=>{
+        pathways.push({
+            id: `path-building-${idx + 1}`,
+            pos: building.pos,
+            size: [
+                12,
+                pathWidth
+            ],
+            orientation: "horizontal"
+        });
+    });
+    return pathways;
+};
+/**
+ * Place props (trees, lamps, benches) along pathways and in green spaces
+ */ const generateProps = (pathways, buildings, compoundSize, density = 1.0)=>{
+    const props = {
+        trees: [],
+        lamps: [],
+        benches: []
+    };
+    // Trees in open areas (avoid pathways and buildings)
+    const treeCount = Math.round(10 * density);
+    for(let i = 0; i < treeCount; i++){
+        const x = (Math.random() - 0.5) * (compoundSize * 0.8);
+        const z = (Math.random() - 0.5) * (compoundSize * 0.8);
+        props.trees.push({
+            pos: [
+                Math.round(x),
+                Math.round(z)
+            ]
+        });
+    }
+    // Lamps along pathways (every ~20 units)
+    pathways.forEach((pathway, idx)=>{
+        if (pathway.orientation === "horizontal") {
+            const lampCount = Math.floor(pathway.size[0] / 20);
+            for(let i = 0; i < lampCount; i++)props.lamps.push({
+                pos: [
+                    pathway.pos[0] - pathway.size[0] / 2 + i * 20,
+                    pathway.pos[1] + 3
+                ]
+            });
+        } else {
+            const lampCount = Math.floor(pathway.size[1] / 20);
+            for(let i = 0; i < lampCount; i++)props.lamps.push({
+                pos: [
+                    pathway.pos[0] + 3,
+                    pathway.pos[1] - pathway.size[1] / 2 + i * 20
+                ]
+            });
+        }
+    });
+    // Benches near pathways (randomly)
+    const benchCount = Math.round(4 * density);
+    for(let i = 0; i < benchCount; i++){
+        const pathway = pathways[Math.floor(Math.random() * pathways.length)];
+        const offset = (Math.random() - 0.5) * 10;
+        props.benches.push({
+            pos: [
+                pathway.pos[0] + offset,
+                pathway.pos[1] + offset
+            ],
+            rotation: Math.floor(Math.random() * 4) * 90
+        });
+    }
+    return props;
+};
+/**
+ * Generate guard positions and patrol routes
+ */ const generateGuards = (buildings, pathways, compoundSize, gatePos, objectivePos)=>{
+    const guards = [];
+    const safeZoneRadius = 25; // No guards near gate
+    // 1. Gate guard (outside safe zone)
+    guards.push({
+        id: "guard-gate",
+        startPos: [
+            gatePos[0] + safeZoneRadius,
+            0,
+            0
+        ],
+        type: "stationary",
+        rotation: 270,
+        state: "idle"
+    });
+    // 2. Objective guard
+    guards.push({
+        id: "guard-objective",
+        startPos: [
+            objectivePos[0] + 5,
+            0,
+            objectivePos[1] - 5
+        ],
+        type: "stationary",
+        rotation: 225,
+        state: "idle"
+    });
+    // 3. Building guards (one per building)
+    buildings.forEach((building, idx)=>{
+        if (idx < 1) guards.push({
+            id: `guard-building-${idx + 1}`,
+            startPos: [
+                building.pos[0] - 10,
+                0,
+                building.pos[1] + 5
+            ],
+            type: "stationary",
+            rotation: 0,
+            state: "idle"
+        });
+    });
+    // 4. Patrol routes along perimeter paths
+    const perimeterOffset = 15;
+    // North patrol
+    guards.push({
+        id: "patrol-north",
+        startPos: [
+            -compoundSize / 4,
+            0,
+            -compoundSize / 2 + perimeterOffset
+        ],
+        type: "patrol",
+        route: [
+            [
+                -compoundSize / 4,
+                0,
+                -compoundSize / 2 + perimeterOffset
+            ],
+            [
+                compoundSize / 4,
+                0,
+                -compoundSize / 2 + perimeterOffset
+            ],
+            [
+                compoundSize / 4,
+                0,
+                -compoundSize / 2 + perimeterOffset + 10
+            ],
+            [
+                -compoundSize / 4,
+                0,
+                -compoundSize / 2 + perimeterOffset + 10
+            ]
+        ],
+        mode: "walk"
+    });
+    // East patrol
+    guards.push({
+        id: "patrol-east",
+        startPos: [
+            compoundSize / 2 - perimeterOffset,
+            0,
+            -compoundSize / 4
+        ],
+        type: "patrol",
+        route: [
+            [
+                compoundSize / 2 - perimeterOffset,
+                0,
+                -compoundSize / 4
+            ],
+            [
+                compoundSize / 2 - perimeterOffset,
+                0,
+                compoundSize / 4
+            ]
+        ],
+        mode: "walk"
+    });
+    // South patrol
+    guards.push({
+        id: "patrol-south",
+        startPos: [
+            -compoundSize / 4,
+            0,
+            compoundSize / 2 - perimeterOffset
+        ],
+        type: "patrol",
+        route: [
+            [
+                -compoundSize / 4,
+                0,
+                compoundSize / 2 - perimeterOffset
+            ],
+            [
+                compoundSize / 4,
+                0,
+                compoundSize / 2 - perimeterOffset
+            ],
+            [
+                compoundSize / 4,
+                0,
+                compoundSize / 2 - perimeterOffset - 10
+            ],
+            [
+                -compoundSize / 4,
+                0,
+                compoundSize / 2 - perimeterOffset - 10
+            ]
+        ],
+        mode: "walk"
+    });
+    return guards;
+};
+/**
+ * Convert compound layout to grid format
+ * @param {number} gridSize - Size of grid (gridSize x gridSize)
+ * @param {number} tileSize - Size of each tile in world units
+ * @param {object} compound - Compound layout data
+ * @returns {object} {map: [[]], assets: [[]]}
+ */ const compoundToGrid = (gridSize, tileSize, compound)=>{
+    // Initialize grids
+    const map = Array(gridSize).fill(null).map(()=>Array(gridSize).fill(0));
+    const assets = Array(gridSize).fill(null).map(()=>Array(gridSize).fill(0));
+    const worldSize = gridSize * tileSize;
+    const halfWorld = worldSize / 2;
+    // Helper to convert world coords to grid coords
+    // Must match inverse of: world = (grid - gridSize/2 + 1) * tileSize
+    // So: grid = world/tileSize + gridSize/2 - 1
+    const toGrid = (worldX, worldZ)=>{
+        const x = Math.round(worldX / tileSize + gridSize / 2 - 1);
+        const z = Math.round(worldZ / tileSize + gridSize / 2 - 1);
+        return [
+            Math.max(0, Math.min(gridSize - 1, x)),
+            Math.max(0, Math.min(gridSize - 1, z))
+        ];
+    };
+    // Helper to fill rectangle in grid
+    const fillRect = (grid, centerX, centerZ, width, depth, value)=>{
+        // Convert center position and corners to grid
+        const halfW = width / 2;
+        const halfD = depth / 2;
+        const [x1, z1] = toGrid(centerX - halfW, centerZ - halfD);
+        const [x2, z2] = toGrid(centerX + halfW, centerZ + halfD);
+        // Fill the rectangle
+        for(let z = Math.min(z1, z2); z <= Math.max(z1, z2); z++){
+            for(let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++)if (x >= 0 && x < gridSize && z >= 0 && z < gridSize) grid[z][x] = value;
+        }
+    };
+    // Perimeter walls
+    if (compound.perimeter && compound.perimeter.walls) compound.perimeter.walls.forEach((wall)=>{
+        fillRect(map, wall.pos[0], wall.pos[1], wall.size[0], wall.size[1], 2);
+    });
+    // Buildings as walls
+    if (compound.buildings) compound.buildings.forEach((building)=>{
+        fillRect(map, building.pos[0], building.pos[1], building.size[0], building.size[1], 2);
+    });
+    // Pathways as tiles
+    if (compound.pathways) compound.pathways.forEach((pathway)=>{
+        fillRect(map, pathway.pos[0], pathway.pos[1], pathway.size[0], pathway.size[1], 1);
+    });
+    // Props as assets
+    if (compound.props) {
+        // Lamps (asset 1)
+        if (compound.props.lamps) compound.props.lamps.forEach((lamp)=>{
+            const [x, z] = toGrid(lamp.pos[0], lamp.pos[1]);
+            if (assets[z][x] === 0) assets[z][x] = 1;
+        });
+        // Benches (asset 2)
+        if (compound.props.benches) compound.props.benches.forEach((bench)=>{
+            const [x, z] = toGrid(bench.pos[0], bench.pos[1]);
+            if (assets[z][x] === 0) assets[z][x] = 2;
+        });
+        // Trees (assets 3-5)
+        if (compound.props.trees) compound.props.trees.forEach((tree, i)=>{
+            const [x, z] = toGrid(tree.pos[0], tree.pos[1]);
+            if (assets[z][x] === 0) assets[z][x] = 3 + i % 3; // Rotate through tree types 3, 4, 5
+        });
+    }
+    return {
+        needsReload: false,
+        map,
+        assets
+    };
+};
+/**
+ * Main generator function - creates complete compound level
+ */ const generateCompound = (options = {})=>{
+    const { gridSize = 29, tileSize = 5, buildingCount = 3, density = 1.0, seed = Math.random() } = options;
+    const worldSize = gridSize * tileSize;
+    // Generate compound structure
+    const perimeter = generatePerimeter(worldSize);
+    const buildings = generateBuildings(buildingCount, worldSize);
+    const pathways = generatePathways(buildings, worldSize, perimeter.gate.pos);
+    const props = generateProps(pathways, buildings, worldSize, density);
+    const objectivePos = [
+        0,
+        -5
+    ]; // Center area
+    const guards = generateGuards(buildings, pathways, worldSize, perimeter.gate.pos, objectivePos);
+    const playerStart = {
+        pos: [
+            perimeter.gate.pos[0] - 5,
+            0.2,
+            0
+        ],
+        rotation: 90
+    };
+    const compound = {
+        perimeter,
+        buildings,
+        pathways,
+        props
+    };
+    // Convert to grid format and add metadata
+    const gridData = compoundToGrid(gridSize, tileSize, compound);
+    return {
+        ...gridData,
+        playerStart,
+        guards
+    };
+};
+module.exports = {
+    generatePerimeter,
+    generateBuildings,
+    generatePathways,
+    generateProps,
+    generateGuards,
+    generateCompound
+};
+
+},{}],"e19CZ":[function(require,module,exports) {
+"use strict";
+const levelGen = require("ba62bb759ce0d1c5");
+/**
+ * Debug utilities for level generation
+ * Outputs text/JSON representations for testing
+ */ /**
+ * Convert level data to JSON string
+ */ const toJSON = (levelData, pretty = true)=>{
+    return JSON.stringify(levelData, null, pretty ? 2 : 0);
+};
+/**
+ * Generate ASCII map visualization from grid format
+ */ const gridToASCII = (levelData)=>{
+    const map = levelData.map;
+    const assets = levelData.assets;
+    const gridSize = map.length;
+    // Tile type to character mapping (using 2 chars for consistent spacing)
+    const tileChars = {
+        0: "  ",
+        1: "\xb7\xb7",
+        2: "\u2588\u2588" // Wall
+    };
+    // Asset type to emoji mapping (emojis are 2 chars wide)
+    const assetChars = {
+        0: "",
+        1: "\uD83D\uDCA1",
+        2: "\uD83E\uDE91",
+        3: "\uD83C\uDF33",
+        4: "\uD83C\uDF33",
+        5: "\uD83C\uDF33" // Tree 3
+    };
+    let output = `\nPROCEDURAL LEVEL (${gridSize}x${gridSize})\n`;
+    output += "\u2550".repeat(gridSize * 2) + "\n";
+    for(let z = 0; z < gridSize; z++){
+        let row = "";
+        for(let x = 0; x < gridSize; x++){
+            const tile = map[z][x];
+            const asset = assets[z][x];
+            // Asset takes precedence for display
+            if (asset !== 0) row += assetChars[asset];
+            else row += tileChars[tile];
+        }
+        output += row + "\n";
+    }
+    output += "\u2550".repeat(gridSize * 2) + "\n";
+    output += "\nLEGEND:\n";
+    output += "  \u2588\u2588 = Wall (value 2)\n";
+    output += "  \xb7\xb7 = Pathway/Tiles (value 1)\n";
+    output += "     = Ground (value 0)\n";
+    output += "  \uD83D\uDCA1 = Lamp (asset 1)\n";
+    output += "  \uD83E\uDE91 = Bench (asset 2)\n";
+    output += "  \uD83C\uDF33 = Tree (assets 3-5)\n";
+    return output;
+};
+/**
+ * Generate ASCII map visualization (legacy compound format)
+ */ const toASCII = (levelData)=>{
+    const size = levelData.size;
+    const scale = 2; // 2 units per character
+    const gridSize = Math.floor(size / scale);
+    // Initialize grid
+    const grid = Array(gridSize).fill(null).map(()=>Array(gridSize).fill(" "));
+    // Helper to convert world coords to grid coords
+    const toGrid = (x, z)=>{
+        const gx = Math.floor((x + size / 2) / scale);
+        const gz = Math.floor((z + size / 2) / scale);
+        return [
+            Math.max(0, Math.min(gridSize - 1, gx)),
+            Math.max(0, Math.min(gridSize - 1, gz))
+        ];
+    };
+    // Draw perimeter walls
+    for(let i = 0; i < gridSize; i++){
+        grid[0][i] = "\u2550";
+        grid[gridSize - 1][i] = "\u2550";
+        grid[i][0] = "\u2551";
+        grid[i][gridSize - 1] = "\u2551";
+    }
+    grid[0][0] = "\u2554";
+    grid[0][gridSize - 1] = "\u2557";
+    grid[gridSize - 1][0] = "\u255A";
+    grid[gridSize - 1][gridSize - 1] = "\u255D";
+    // Draw gate
+    const [gx, gz] = toGrid(levelData.perimeter.gate.pos[0], levelData.perimeter.gate.pos[1]);
+    for(let i = -1; i <= 1; i++)if (gz + i >= 0 && gz + i < gridSize) grid[gz + i][gx] = "\u2593";
+    // Draw pathways
+    levelData.pathways.forEach((path)=>{
+        const [px, pz] = toGrid(path.pos[0], path.pos[1]);
+        const w = Math.floor(path.size[0] / scale / 2);
+        const h = Math.floor(path.size[1] / scale / 2);
+        for(let i = -w; i <= w; i++)for(let j = -h; j <= h; j++){
+            const x = px + i;
+            const z = pz + j;
+            if (x >= 0 && x < gridSize && z >= 0 && z < gridSize) {
+                if (grid[z][x] === " ") grid[z][x] = "\xb7";
+            }
+        }
+    });
+    // Draw buildings
+    levelData.buildings.forEach((building)=>{
+        const [bx, bz] = toGrid(building.pos[0], building.pos[1]);
+        const w = Math.floor(building.size[0] / scale / 2);
+        const h = Math.floor(building.size[1] / scale / 2);
+        // Draw building outline
+        for(let i = -w; i <= w; i++)for(let j = -h; j <= h; j++){
+            const x = bx + i;
+            const z = bz + j;
+            if (x >= 0 && x < gridSize && z >= 0 && z < gridSize) {
+                if (i === -w || i === w || j === -h || j === h) grid[z][x] = "\u2588";
+            }
+        }
+        // Add building door
+        grid[bz + h][bx] = "\u2593";
+    });
+    // Draw trees
+    levelData.props.trees.forEach((tree)=>{
+        const [tx, tz] = toGrid(tree.pos[0], tree.pos[1]);
+        if (tx >= 0 && tx < gridSize && tz >= 0 && tz < gridSize) {
+            if (grid[tz][tx] === " ") grid[tz][tx] = "\uD83C\uDF33";
+        }
+    });
+    // Draw lamps
+    levelData.props.lamps.forEach((lamp)=>{
+        const [lx, lz] = toGrid(lamp.pos[0], lamp.pos[1]);
+        if (lx >= 0 && lx < gridSize && lz >= 0 && lz < gridSize) {
+            if (grid[lz][lx] === "\xb7" || grid[lz][lx] === " ") grid[lz][lx] = "\uD83D\uDCA1";
+        }
+    });
+    // Draw benches
+    levelData.props.benches.forEach((bench)=>{
+        const [bx, bz] = toGrid(bench.pos[0], bench.pos[1]);
+        if (bx >= 0 && bx < gridSize && bz >= 0 && bz < gridSize) {
+            if (grid[bz][bx] === "\xb7" || grid[bz][bx] === " ") grid[bz][bx] = "\uD83E\uDE91";
+        }
+    });
+    // Draw guards
+    levelData.guards.forEach((guard)=>{
+        const [gx, gz] = toGrid(guard.startPos[0], guard.startPos[2]);
+        if (gx >= 0 && gx < gridSize && gz >= 0 && gz < gridSize) grid[gz][gx] = guard.type === "stationary" ? "\uD83E\uDDCD" : "\uD83D\uDEB6";
+    });
+    // Draw objective
+    const [ox, oz] = toGrid(levelData.objective.pos[0], levelData.objective.pos[1]);
+    if (ox >= 0 && ox < gridSize && oz >= 0 && oz < gridSize) grid[oz][ox] = "\u2605";
+    // Draw player start
+    const [px, pz] = toGrid(levelData.playerStart.pos[0], levelData.playerStart.pos[2]);
+    if (px >= 0 && px < gridSize && pz >= 0 && pz < gridSize) grid[pz][px] = "\uD83D\uDC64";
+    // Convert grid to string
+    let output = `\nCOMPOUND: ${levelData.name} (${levelData.size}x${levelData.size})\n`;
+    output += "\u2550".repeat(gridSize) + "\n";
+    output += grid.map((row)=>row.join("")).join("\n");
+    output += "\n" + "\u2550".repeat(gridSize) + "\n";
+    return output;
+};
+/**
+ * Generate summary report
+ */ const toSummary = (levelData)=>{
+    let output = `\nLEVEL SUMMARY: ${levelData.name}\n`;
+    output += "=".repeat(50) + "\n\n";
+    output += `Compound Size: ${levelData.size}x${levelData.size}\n`;
+    output += `Buildings: ${levelData.buildings.length}\n`;
+    output += `Pathways: ${levelData.pathways.length}\n`;
+    output += `Guards: ${levelData.guards.length}\n`;
+    output += `  - Stationary: ${levelData.guards.filter((g)=>g.type === "stationary").length}\n`;
+    output += `  - Patrol: ${levelData.guards.filter((g)=>g.type === "patrol").length}\n`;
+    output += `Props:\n`;
+    output += `  - Trees: ${levelData.props.trees.length}\n`;
+    output += `  - Lamps: ${levelData.props.lamps.length}\n`;
+    output += `  - Benches: ${levelData.props.benches.length}\n\n`;
+    output += "BUILDINGS:\n";
+    levelData.buildings.forEach((b, i)=>{
+        output += `  ${i + 1}. ${b.id} (${b.type})\n`;
+        output += `     Position: [${b.pos[0]}, ${b.pos[1]}]\n`;
+        output += `     Size: ${b.size[0]}x${b.size[1]}, Height: ${b.height}\n`;
+    });
+    output += "\nGUARDS:\n";
+    levelData.guards.forEach((g, i)=>{
+        output += `  ${i + 1}. ${g.id} (${g.type})\n`;
+        output += `     Start: [${g.startPos[0]}, ${g.startPos[2]}]\n`;
+        if (g.type === "patrol") output += `     Waypoints: ${g.route.length}\n`;
+        else output += `     Rotation: ${g.rotation}\xb0
+`;
+    });
+    output += `\nOBJECTIVE: ${levelData.objective.type}\n`;
+    output += `  Position: [${levelData.objective.pos[0]}, ${levelData.objective.pos[1]}]\n`;
+    output += `\nPLAYER START:\n`;
+    output += `  Position: [${levelData.playerStart.pos[0]}, ${levelData.playerStart.pos[2]}]\n`;
+    output += `  Rotation: ${levelData.playerStart.rotation}\xb0
+
+`;
+    return output;
+};
+/**
+ * Test generator with different options
+ */ const runTests = ()=>{
+    console.log("\n" + "=".repeat(60));
+    console.log("LEVEL GENERATOR DEBUG OUTPUT");
+    console.log("=".repeat(60));
+    // Test 1: Default compound
+    console.log("\n\nTEST 1: Default Compound (3 buildings)");
+    console.log("-".repeat(60));
+    const level1 = levelGen.generateCompound();
+    console.log(toASCII(level1));
+    console.log(toSummary(level1));
+    // Test 2: Smaller compound
+    console.log("\n\nTEST 2: Smaller Compound (2 buildings)");
+    console.log("-".repeat(60));
+    const level2 = levelGen.generateCompound({
+        size: 100,
+        buildingCount: 2,
+        density: 0.7
+    });
+    console.log(toASCII(level2));
+    console.log(toSummary(level2));
+    // Test 3: Larger compound
+    console.log("\n\nTEST 3: Larger Compound (4 buildings)");
+    console.log("-".repeat(60));
+    const level3 = levelGen.generateCompound({
+        size: 140,
+        buildingCount: 4,
+        density: 1.2
+    });
+    console.log(toASCII(level3));
+    console.log(toSummary(level3));
+    // Output JSON of first level
+    console.log("\n\nJSON OUTPUT (Test 1):");
+    console.log("-".repeat(60));
+    console.log(toJSON(level1));
+};
+module.exports = {
+    toJSON,
+    toASCII,
+    gridToASCII,
+    toSummary,
+    runTests
+};
+// Run tests if executed directly
+if (undefined === module) runTests();
+
+},{"ba62bb759ce0d1c5":"9v4cw"}],"cIXOv":[function(require,module,exports) {
 "use strict";
 const { obj } = require("4ef6bac7ab5afb6c");
 // const h = require('snabbdom/h').default;
@@ -11349,7 +12174,7 @@ require("b69d19af197617c6");
 const colladaLoader = require("cdbbfd8b1b2235b3");
 const time = require("32c4a5a46759f75d");
 const { obj, fn } = require("80e4bb2e83a5b838");
-const level = require("7067a3244f17cf29");
+const { loadLevel } = require("7067a3244f17cf29");
 const _camera = require("fd1cfc687e006d4b");
 const _character = require("7b9f7365e4d326b");
 const npcs = require("51947f3fbf55372c");
@@ -11398,7 +12223,7 @@ const init = ({ canvas, state })=>{
     });
     canvas.innerHTML = "";
     canvas.appendChild(renderer.domElement);
-    level.init({
+    loadLevel({
         scene,
         state
     });
@@ -11470,7 +12295,19 @@ let hook = ({ state$, actions, minimap })=>{
                 guards
             };
         }));
-    const sceneState$ = merge(init$, character$, npcs$).pipe(map((reducer)=>(console.log(reducer), reducer)), scan((sceneState, modify)=>modify(sceneState), {}));
+    const levelChange$ = state$.pipe(distinctUntilChanged((state)=>state.level.needsReload), filter((state)=>state.level.needsReload), map((state)=>(sceneState)=>{
+            console.log("level changed", state);
+            loadLevel({
+                scene: sceneState.scene,
+                state
+            });
+            actions.set([
+                "level",
+                "needsReload"
+            ], false);
+            return sceneState;
+        }));
+    const sceneState$ = merge(init$, character$, npcs$, levelChange$).pipe(map((reducer)=>(console.log(reducer), reducer)), scan((sceneState, modify)=>modify(sceneState), {}));
     subs.push(time.frame().pipe(filter((dt, i)=>i % 2 === 0), withLatestFrom(sceneState$, state$, (dt, sceneState, state)=>({
             ...sceneState,
             state
@@ -41775,23 +42612,90 @@ const genSkyboxMaterial = (pack, opacity = 0.3)=>new THREE.MeshFaceMaterial([
             transparent: true,
             opacity
         })));
-const init = ({ scene, state })=>{
-    const materials = [
-        "ground.jpg",
-        "tiles.png"
-    ].map((f)=>new THREE.TextureLoader().load(`assets/textures/${f}`)).map((text)=>(text.wrapS = THREE.RepeatWrapping, text.wrapT = THREE.RepeatWrapping, text)).map((map)=>new THREE.MeshPhongMaterial({
-            map
-        }));
+const buildSkybox = (scene)=>{
     const skyboxGeo = new THREE.CubeGeometry(1000, 1000, 1000);
     const skybox = new THREE.Mesh(skyboxGeo, genSkyboxMaterial("neccity", 0.1));
     skybox.name = "skybox";
-    // skybox.rotation.y += Math.PI / 2;
     skybox.position.set(0, 0, 0);
     scene.add(skybox);
     scene.fog = new THREE.FogExp2(`#17112a`, 0.015);
     scene.background = new THREE.Color(`#17112a`);
-    const geometry = new THREE.BoxGeometry(5, 0.2, 5);
-    state.level.map.forEach((row, z)=>row.forEach((tile, x)=>fn.pipe(()=>new THREE.Mesh(geometry, materials[tile]), (mesh)=>(mesh.castShadow = true, mesh.receiveShadow = true, mesh), (mesh)=>(mesh.position.set((x - row.length / 2 + 1) * 5, tile * 0.1, (z - state.level.map.length / 2 + 1) * 5), mesh), (mesh)=>scene.add(mesh))()));
+};
+/**
+ * Build optimized wall meshes from level grid
+ * Merges adjacent wall tiles into larger rectangles to reduce mesh count
+ * 
+ * @param {Array<Array<number>>} levelGrid - 2D array where 2 = wall tile
+ * @param {number} tileSize - Size of each tile (assumes square tiles)
+ * @param {Array<number>} gridCenter - [x, z] center offset of grid
+ * @param {number} wallHeight - Height of walls
+ * @param {THREE.Texture} wallTexture - Texture for wall material
+ * @param {THREE.Scene} scene - Scene to add walls to
+ */ const buildWalls = (levelGrid, tileSize, gridCenter, wallHeight, wallTexture, scene)=>{
+    const gridHeight = levelGrid.length;
+    const gridWidth = levelGrid[0] ? levelGrid[0].length : 0;
+    wallTexture.wrapS = THREE.RepeatWrapping;
+    wallTexture.wrapT = THREE.RepeatWrapping;
+    wallTexture.repeat.set(2, 2);
+    const wallMaterial = new THREE.MeshPhongMaterial({
+        map: wallTexture,
+        side: THREE.DoubleSide
+    });
+    // Track which tiles have been processed
+    const processed = Array(gridHeight).fill(null).map(()=>Array(gridWidth).fill(false));
+    // Helper to check if tile is a wall and unprocessed
+    const isWall = (z, x)=>{
+        return z >= 0 && z < gridHeight && x >= 0 && x < gridWidth && levelGrid[z][x] === 2 && !processed[z][x];
+    };
+    // Helper to convert grid coords to world coords
+    const toWorld = (x, z)=>{
+        return [
+            (x - gridWidth / 2 + 1) * tileSize + gridCenter[0],
+            (z - gridHeight / 2 + 1) * tileSize + gridCenter[1]
+        ];
+    };
+    // Scan for horizontal wall spans
+    for(let z = 0; z < gridHeight; z++)for(let x = 0; x < gridWidth; x++){
+        if (!isWall(z, x)) continue;
+        // Find horizontal span length
+        let spanLength = 0;
+        while(isWall(z, x + spanLength))spanLength++;
+        // Try to extend vertically (create rectangles, not just lines)
+        let spanDepth = 1;
+        let canExtend = true;
+        while(canExtend){
+            // Check if next row has the same horizontal span
+            for(let i = 0; i < spanLength; i++)if (!isWall(z + spanDepth, x + i)) {
+                canExtend = false;
+                break;
+            }
+            if (canExtend) spanDepth++;
+        }
+        // Mark all tiles in this rectangle as processed
+        for(let dz = 0; dz < spanDepth; dz++)for(let dx = 0; dx < spanLength; dx++)processed[z + dz][x + dx] = true;
+        // Create wall mesh for this span
+        const width = spanLength * tileSize;
+        const depth = spanDepth * tileSize;
+        const geometry = new THREE.BoxGeometry(width, wallHeight, depth);
+        const mesh = new THREE.Mesh(geometry, wallMaterial);
+        mesh.name = "wall";
+        // Position at center of span
+        const [worldX, worldZ] = toWorld(x + spanLength / 2 - 0.5, z + spanDepth / 2 - 0.5);
+        mesh.position.set(worldX, wallHeight / 2, worldZ);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        scene.add(mesh);
+    }
+};
+const buildTiles = (levelGrid, tileSize, scene)=>{
+    const tileGeometry = new THREE.BoxGeometry(tileSize, 0.2, tileSize);
+    levelGrid.forEach((row, z)=>row.forEach((tile, x)=>{
+            // Skip wall tiles (value === 2), they'll be handled by buildWalls
+            if (tile === 2) return;
+            fn.pipe(()=>new THREE.Mesh(tileGeometry, materials[groundTileMap[tile]]), (mesh)=>(mesh.castShadow = true, mesh.receiveShadow = true, mesh.name = "tile", mesh), (mesh)=>(mesh.position.set((x - row.length / 2 + 1) * tileSize, tile * 0.1, (z - levelGrid.length / 2 + 1) * tileSize), mesh), (mesh)=>scene.add(mesh))();
+        }));
+};
+const buildAssets = (levelAssets, scene)=>{
     const modelScale = [
         0.5,
         2.5,
@@ -41807,8 +42711,43 @@ const init = ({ scene, state })=>{
         "tree3.dae"
     ]).pipe(concatMap((f)=>f.match(".dae") ? colladaLoader.load(`assets/models/${f}`) : f.match(".obj") ? objLoader.load(`assets/models/${f}`) : gltfLoader.load(`assets/models/${f}`)), reduce((a, m)=>[].concat(a, m), [])).subscribe((colladaArray)=>{
         let meshes = colladaArray.map((c)=>c.scene).map((c, i)=>(c.castShadow = true, c.receiveShadow = true, c.scale.set(modelScale[i], modelScale[i], modelScale[i]), c));
-        state.level.assets.forEach((row, z)=>row.forEach((tile, x)=>tile !== 0 && fn.pipe(()=>meshes[tile - 1].clone(), (mesh)=>(mesh.position.set((x - row.length / 2 + 1) * 5, 0, (z - state.level.map.length / 2 + 1) * 5), mesh), (mesh)=>scene.add(mesh))()));
+        levelAssets.forEach((row, z)=>row.forEach((tile, x)=>tile !== 0 && fn.pipe(()=>meshes[tile - 1].clone(), (mesh)=>(mesh.position.set((x - row.length / 2 + 1) * 5, 0, (z - levelAssets.length / 2 + 1) * 5), mesh), (mesh)=>(mesh.name = "asset", mesh), (mesh)=>scene.add(mesh))()));
     });
+};
+const texturesArray = [
+    "ground.jpg",
+    "tiles.png",
+    "wall.jpg"
+];
+const textures = texturesArray.reduce((acc, textureName)=>({
+        ...acc,
+        [textureName.replace(/\.jpg|\.png/, "")]: loadTexture(`assets/textures/${textureName}`)
+    }), {});
+console.log("textures", textures);
+const materials = obj.map(textures, (key, value)=>(console.log("key", key, "value", value), new THREE.MeshPhongMaterial({
+        map: value,
+        side: THREE.DoubleSide
+    })));
+console.log("materials", materials);
+const groundTileMap = {
+    0: "ground",
+    1: "tiles"
+};
+const loadLevel = ({ scene, state })=>{
+    // clean up old level
+    scene.children.forEach((child)=>{
+        if (child.name === "skybox" || child.name === "tile" || child.name === "wall" || child.name === "asset") scene.remove(child);
+    });
+    buildSkybox(scene);
+    const tileSize = 5;
+    // Build floor tiles (non-wall tiles)
+    buildTiles(state.level.map, tileSize, scene);
+    // Build optimized walls
+    buildWalls(state.level.map, tileSize, [
+        0,
+        0
+    ], 16, textures.wall, scene);
+    buildAssets(state.level.assets, scene);
     // gltfLoader.load(`assets/models/old_fabric/scene.gltf`)
     // 	.subscribe(gltf => {
     // 		let fabric = gltf.scene;
@@ -41823,7 +42762,7 @@ const init = ({ scene, state })=>{
     return scene;
 };
 module.exports = {
-    init
+    loadLevel
 };
 
 },{"7ade0276160a4ba8":"hWUVi","f4ec76256794d0c0":"1cs2r","58e82a6766df4681":"5IrVb","66f146b08a6da29d":"2lXuw","515377cc478ad48":"jdCb6","4ee46282c7f6d7a0":"jAd3E","ef1b47d3f672867e":"2RGT8"}],"jAd3E":[function(require,module,exports) {

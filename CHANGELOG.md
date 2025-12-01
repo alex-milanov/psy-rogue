@@ -7,6 +7,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Procedural Level Generation** (`src/js/util/levelGen.js`)
+  - `generateCompound()` - Main generator with configurable parameters
+  - `generatePerimeter()` - Perimeter walls with gate opening
+  - `generateBuildings()` - Building placement with collision avoidance
+  - `generatePathways()` - Pathway network connecting areas
+  - `generateProps()` - Trees, lamps, benches distribution
+  - `generateGuards()` - Guard positions and patrol routes with safe zones
+  - `compoundToGrid()` - Converts to grid format (map + assets)
+  - Output format: `{map: [[]], assets: [[]], playerStart, guards}`
+- **Level Debug Utilities** (`src/js/util/levelGenDebug.js`)
+  - `gridToASCII()` - ASCII + emoji visualization of grid levels
+  - Fixed emoji alignment (all symbols 2-char width)
+  - Console output shows walls (██), pathways (··), and props (💡🪑🌳)
+  - `bin/test-level-gen.js` - Test runner for generation (moved from root)
+- **Optimized Wall Rendering** (`buildWalls` function)
+  - Merges adjacent wall tiles into large rectangular meshes
+  - Greedy rectangle packing algorithm
+  - Reduces mesh count from hundreds to dozens
+  - Proper coordinate system conversion (world ↔ grid)
+- **Level Loading System**
+  - `actions/level.js` - `load(map, assets, playerStart, guards)` action
+  - `needsReload` flag for triggering scene updates
+  - Scene service functions: `buildWalls()`, `buildTiles()`, `buildAssets()`, `loadLevel()`
+  - Material system with texture loading
+  - Old level geometry cleanup on reload
+- **UI Level Controls**
+  - "Load Procedural Level" button in controls panel
+  - Console output: ASCII map + player start + guards data
+  - Configurable generation parameters
+- **Documentation**
+  - `summaries/2025-12-01-procedural-level-generation.md` - Session summary
 - **Brainstorming Organization**
   - `brainstorming/README.md` - Navigation guide for design docs
   - `brainstorming/architecture/` - Architecture patterns and decisions
@@ -62,6 +93,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `.npmrc` for pnpm configuration
 
 ### Changed
+- **Level System**: Refactored to use grid format with state-driven loading
+  - Level data now in `state.level` with `{map, assets, needsReload, playerStart, guards}`
+  - Scene service reacts to level changes
+  - Support for procedural and static levels
+  - Grid format: map (0=ground, 1=tiles, 2=walls), assets (0=none, 1-5=props)
+- **Wall Rendering**: Changed from individual tiles to optimized merged meshes
+  - Walls detected from grid (value === 2)
+  - Adjacent tiles merged into rectangles
+  - Significant performance improvement
+- **Project Structure**: Cleaned up bin folder
+  - Moved `test-level-gen.js` from root to `bin/`
+  - Removed obsolete build scripts
 - **Brainstorming Structure**: Reorganized into `architecture/` and `design/` subfolders
   - Consolidated scattered brainstorming docs into organized hierarchy
   - Moved architecture patterns to dedicated folder
@@ -102,12 +145,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - `brainstorming/syndicate-influences.md`
   - `brainstorming/threejs-upgrade-plan.md`
   - `brainstorming/world-structure.md`
+- **Obsolete Build Scripts**
+  - `bin/sass-paths.js` - For bourbon/neat (removed in previous migration)
+  - `bin/move-assets.js` - Asset copying (Parcel handles automatically)
 - Browserify, Watchify, browserify-hmr
 - node-sass
 - Bourbon and Bourbon Neat
 - Custom `util/app.js` state adapter (replaced by iblokz-state)
 - Livereload script (replaced by Parcel HMR)
-- `bin/sass-paths.js` (no longer needed)
 
 ### Fixed
 - **Minimap Coordinate System**: Applied -45° correction for accurate direction display

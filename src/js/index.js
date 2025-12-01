@@ -1,6 +1,6 @@
 
 // lib
-const { map, distinctUntilChanged } = require('rxjs/operators');
+const { map, distinctUntilChanged, filter } = require('rxjs/operators');
 
 // iblokz
 const vdom = require('iblokz-snabbdom-helpers');
@@ -68,16 +68,21 @@ if (module.hot) {
 }
 
 // Log actions for debugging
-actions.stream.subscribe(action => {
-	action.path && console.log(action.path.join('.'), action.payload);
-	// console.log('Action:', action);
-});
+actions.stream
+	.pipe(
+		filter(action => action.path && ['game', 'viewport.mouse'].indexOf(
+			[].concat(action.payload[0]).join('.')
+		) === -1)
+	)
+	.subscribe(action => console.log(action.path.join('.'), 	[].concat(action.payload[0]).join('.'),action.payload));
 
 // logging
 state$
 	.pipe(
-		map(state => obj.filter(state, key => key !== 'viewport')),
-		distinctUntilChanged()
+		map(state => obj.filter(state, key => ['game', 'viewport'].indexOf(key) === -1)),
+		distinctUntilChanged(
+			(a, b) => obj.equals(obj.filter(a, key => ['game', 'viewport'].indexOf(key) === -1), obj.filter(b, key => ['game', 'viewport'].indexOf(key) === -1))
+		)
 	)
 	.subscribe(state => console.log(state));
 
