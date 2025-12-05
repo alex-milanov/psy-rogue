@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Object Equality Comparison Utility**
+  - Added `equals()` function using `JSON.stringify()` for state comparison
+  - Used in state logging to filter duplicate state updates
+  - Replaces `obj.equals()` from iblokz-data for simpler dependency
 - **Procedural Level Generation** (`src/js/util/levelGen.js`)
   - `generateCompound()` - Main generator with configurable parameters
   - `generatePerimeter()` - Perimeter walls with gate opening
@@ -20,7 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - `gridToASCII()` - ASCII + emoji visualization of grid levels
   - Fixed emoji alignment (all symbols 2-char width)
   - Console output shows walls (██), pathways (··), and props (💡🪑🌳)
-  - `bin/test-level-gen.js` - Test runner for generation (moved from root)
+  - `bin/test-level-gen.js` - Test runner for generation
 - **Optimized Wall Rendering** (`buildWalls` function)
   - Merges adjacent wall tiles into large rectangular meshes
   - Greedy rectangle packing algorithm
@@ -32,12 +36,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Scene service functions: `buildWalls()`, `buildTiles()`, `buildAssets()`, `loadLevel()`
   - Material system with texture loading
   - Old level geometry cleanup on reload
+  - Reactive level change detection via RxJS streams
+  - Grid utilities (`src/js/util/three/grid.js`) for coordinate transformations
 - **UI Level Controls**
   - "Load Procedural Level" button in controls panel
   - Console output: ASCII map + player start + guards data
   - Configurable generation parameters
+  - Conditional tile info display (only for grid-based levels)
+- **3D Assets & Models**
+  - Added grass model collection (16 variants in FBX/OBJ formats)
+  - Added grass GLTF models: `grass_01_d.gltf`, `grass_03_t.gltf`, `grass_07_d.gltf`
+  - Added new textures: `wall.jpg`, `Metal005_2K_Color.jpg`, `WoodSiding006_2K_Color.jpg`
+  - Added models: `bench2.dae`, `palm_tree.gltf`, `tree2.gltf`, `tree21.dae`
+  - Updated `ground.jpg` texture
+  - Added source Blender files: `bench.blend`, `palm_tree.blend`, `tree2.blend`, grass variants
 - **Documentation**
   - `summaries/2025-12-01-procedural-level-generation.md` - Session summary
+  - `brainstorming/design/levels/procedural-integration.md` - Integration design doc
 - **Brainstorming Organization**
   - `brainstorming/README.md` - Navigation guide for design docs
   - `brainstorming/architecture/` - Architecture patterns and decisions
@@ -93,6 +108,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `.npmrc` for pnpm configuration
 
 ### Changed
+- **State Logging**: Improved action filtering and state comparison
+  - Added filter to exclude noisy actions (game, viewport.mouse) from console
+  - Replaced `obj.equals()` with custom `equals()` function using JSON.stringify
+  - Better state change detection for debugging
 - **Level System**: Refactored to use grid format with state-driven loading
   - Level data now in `state.level` with `{map, assets, needsReload, playerStart, guards}`
   - Scene service reacts to level changes
@@ -136,6 +155,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Updated project summaries with latest changes
 
 ### Removed
+- **Build Output from Git**: Removed `dist/` directory from version control
+  - Added `dist/` to `.gitignore`
+  - Build artifacts should not be committed (Parcel generates them)
+- **Obsolete Build Scripts**
 - **Old Brainstorming Files** (consolidated into organized structure)
   - `brainstorming/camera-and-view-systems.md`
   - `brainstorming/game-scene-separation.md`
@@ -186,4 +209,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - RxJS 4.x
 - iblokz libraries 1.x
 - npm package manager
+
 

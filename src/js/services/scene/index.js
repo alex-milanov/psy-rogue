@@ -1,7 +1,7 @@
 'use strict';
 
 // lib
-const { interval, merge, of } = require('rxjs');
+const { interval, merge, of, concat } = require('rxjs');
 const { map, filter, distinctUntilChanged, withLatestFrom, scan } = require('rxjs/operators');
 
 // threejs
@@ -89,8 +89,8 @@ const render = ({plane, scene, camera, effect, renderer, state, character, mixer
 
 	renderer.setSize(state.viewport.screen.width, state.viewport.screen.height);
 	// renderer.setFaceCulling(0);
-	// renderer.render(scene, camera);
-	effect.render(scene, camera);
+	renderer.render(scene, camera);
+	// effect.render(scene, camera);
 };
 
 // const loadMap = (url, dim) => imageUtil.load(url)
@@ -127,6 +127,7 @@ let hook = ({state$, actions, minimap}) => {
 			map(guards => sceneState => {
 				console.log(guards);
 				guards.forEach(guard => {
+					console.log('add guard', sceneState, guard);
 					sceneState.scene.add(guard.model);
 				});
 				console.log(sceneState);
