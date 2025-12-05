@@ -22,6 +22,10 @@ let audio = require('./services/audio');
 let control = require('./services/control');
 let minimap = require('./services/minimap');
 
+const equals = (a, b) => {
+	return JSON.stringify(a) === JSON.stringify(b);
+};
+
 // hot reloading
 if (module.hot) {
 	// actions
@@ -81,7 +85,10 @@ state$
 	.pipe(
 		map(state => obj.filter(state, key => ['game', 'viewport'].indexOf(key) === -1)),
 		distinctUntilChanged(
-			(a, b) => obj.equals(obj.filter(a, key => ['game', 'viewport'].indexOf(key) === -1), obj.filter(b, key => ['game', 'viewport'].indexOf(key) === -1))
+			(a, b) => equals(
+				obj.filter(a, key => ['game', 'viewport'].indexOf(key) === -1),
+				obj.filter(b, key => ['game', 'viewport'].indexOf(key) === -1)
+			)
 		)
 	)
 	.subscribe(state => console.log(state));

@@ -2,7 +2,7 @@
 
 // lib
 const { from } = require('rxjs');
-const { concatMap, reduce } = require('rxjs/operators');
+const { concatMap, reduce, map } = require('rxjs/operators');
 
 // threejs
 const THREE = require('three');
@@ -13,7 +13,31 @@ const {obj, fn} = require('iblokz-data');
 const colladaLoader = require('../../util/three/loader/collada.js');
 const gltfLoader = require('../../util/three/loader/gltf.js');
 const objLoader = require('../../util/three/loader/obj.js');
+const gridUtil = require('../../util/three/grid.js');
 
+const loadFile = fileName => fileName.match('.dae')
+	? colladaLoader.load(`assets/models/${fileName}`)
+	: fileName.match('.obj')
+		? objLoader.load(`assets/models/${fileName}`)
+		: gltfLoader.load(`assets/models/${fileName}`);
+
+// range -> start[x,y] + end[x,y]
+// amount 0 ... n
+// array of meshes
+const random = (start, end) => start + Math.floor(Math.random() * (end - start));
+const scatter = (range, arr) => arr.map(mesh => (mesh.position.copy({
+	x: random(range.start.x, range.end.x),
+	z: random(range.start.z, range.end.z),
+	y: 0.2
+}), mesh));
+
+const group = (...meshes) => meshes.reduce(
+	(group, mesh) => ((mesh instanceof Array
+		? mesh.forEach(m => group.add(m))
+		: group.add(mesh)),
+		group),
+	new THREE.Group()
+);
 
 const loadTexture = file => new THREE.TextureLoader().load(file);
 const genSkyboxMaterial = (pack, opacity = 0.3) => new THREE.MeshFaceMaterial(
@@ -129,9 +153,63 @@ const buildWalls = (levelGrid, tileSize, gridCenter, wallHeight, wallTexture, sc
 	}
 };
 
+
+const texturesArray = ['ground.jpg', 'tiles.png', 'wall.jpg'];
+const textures = texturesArray
+	.reduce((acc, textureName) => ({
+		...acc,
+		[textureName.replace(/\.jpg|\.png/, '')]: loadTexture(`assets/textures/${textureName}`)
+	}), {});
+
+console.log('textures', textures);
+
+const materials = obj.map(textures, (key, value) =>
+	((console.log('key', key, 'value', value),
+	new THREE.MeshPhongMaterial({map: value, side: THREE.DoubleSide}))));
+
+console.log('materials', materials);
+
+const groundTileMap = {
+	0: 'ground',
+	1: 'tiles'
+};
+
 const buildTiles = (levelGrid, tileSize, scene) => {
 
+	const grassMeshes$ = from([
+		'grass/grass_01_d.gltf', 'grass/grass_01_d.gltf', 'grass/grass_01_d.gltf',
+		'grass/grass_03_t.gltf', 'grass/grass_07_d.gltf'
+	])
+		.pipe(
+			concatMap(fileName => loadFile(fileName)),
+			reduce((a, m) => [].concat(a, m), []),
+			map(colladaArray => {
+				let meshes = colladaArray
+					.map(c => c.scene)
+					.map((c, i) => (
+						(c.castShadow = true),
+						(c.receiveShadow = true),
+						(console.log(i, c)),
+						(c.children.forEach(c => c.material && (!(c.material instanceof Array)
+							? (c.material.transparent = true)
+							: c.material.forEach(m => (m.transparent = true))))),
+						(c.scale.set(2, 2, 2),
+						c
+					)));
+				return meshes;
+			})
+		);
+
 	const tileGeometry = new THREE.BoxGeometry(tileSize, 0.2, tileSize);
+	const tiles = obj.map(groundTileMap,
+		(key, value) => Object.assign(
+			new THREE.Mesh(tileGeometry, materials[value]),
+			{
+				castShadow: true,
+				receiveShadow: true,
+				name: 'tile'
+			}
+		));
 	
 	levelGrid.forEach(
 		(row, z) => row
@@ -158,29 +236,54 @@ const buildTiles = (levelGrid, tileSize, scene) => {
 				}
 			)
 	);
+
+	grassMeshes$.subscribe(grassMeshes =>
+		levelGrid.forEach(
+			(row, z) => row
+				.filter(tile => tile !== 2)
+				.forEach(
+					(tile, x) => fn.pipe(
+						() => tile === 1
+							? tiles[tile].clone()
+							: group(tiles[tile].clone(), scatter(
+								{start: {x: -2, z: -2}, end: {x: 3, z: 3}},
+								new Array(8).fill({}).map(
+									() => grassMeshes[random(0, grassMeshes.length)].clone())
+								)),
+						mesh => (mesh.position.set(
+							(x - row.length / 2 + 1) * tileSize,
+							tile * 0.1,
+							(z - levelGrid.length / 2 + 1) * tileSize
+						), mesh),
+						mesh => scene.add(mesh)
+					)()
+				)
+		)
+	);
 };
 
 const buildAssets = (levelAssets, scene) => {
-	const modelScale = [0.5, 2.5, 3, 3, 1];
-	from(['lamp.dae', 'bench.dae', 'tree1.dae', 'tree2.dae', 'tree3.dae'])
+	const modelScale = [0.6, 2.5, 3, 0.7, 1];
+	from(['lamp.dae', 'bench2.dae', 'tree1.dae', 'palm_tree.gltf', 'tree3.dae'])
 		.pipe(
-			concatMap(f => f.match('.dae')
-				? colladaLoader.load(`assets/models/${f}`)
-				: f.match('.obj')
-					? objLoader.load(`assets/models/${f}`)
-					: gltfLoader.load(`assets/models/${f}`)
-			),
+			concatMap(fileName => loadFile(fileName)),
 			reduce((a, m) => [].concat(a, m), [])
 		)
 		.subscribe(colladaArray => {
+
 			let meshes = colladaArray
 				.map(c => c.scene)
 				.map((c, i) => (
 					(c.castShadow = true),
 					(c.receiveShadow = true),
+					(console.log(i, c)),
+					(c.children.forEach(c => c.material && (!(c.material instanceof Array)
+						? (c.material.transparent = true)
+						: c.material.forEach(m => (m.transparent = true))))),
 					(c.scale.set(modelScale[i], modelScale[i], modelScale[i]),
 					c
 				)));
+
 			levelAssets.forEach(
 				(row, z) => row
 					.forEach(
@@ -198,26 +301,6 @@ const buildAssets = (levelAssets, scene) => {
 			);
 		});
 }
-
-const texturesArray = ['ground.jpg', 'tiles.png', 'wall.jpg'];
-const textures = texturesArray
-	.reduce((acc, textureName) => ({
-		...acc,
-		[textureName.replace(/\.jpg|\.png/, '')]: loadTexture(`assets/textures/${textureName}`)
-	}), {});
-
-console.log('textures', textures);
-
-const materials = obj.map(textures, (key, value) =>
-	((console.log('key', key, 'value', value),
-	new THREE.MeshPhongMaterial({map: value, side: THREE.DoubleSide}))));
-
-console.log('materials', materials);
-	
-const groundTileMap = {
-	0: 'ground',
-	1: 'tiles'
-};
 
 const loadLevel = ({scene, state}) => {
 	// clean up old level
@@ -258,6 +341,7 @@ const loadLevel = ({scene, state}) => {
 	// 	});
 	return scene;
 };
+
 
 module.exports = {
 	loadLevel
