@@ -1,0 +1,68 @@
+.anim-preview
+	position: absolute
+	top: 280px
+	right: 16px
+	width: 200px
+	max-height: calc(100% - 300px)
+	overflow: auto
+	opacity: 0.85
+	z-index: 1000
+	font-family: "Nova Flat"
+	background: rgba(0, 50, 70, 0.35)
+	border: 1px solid #71a1d1
+	border-left-width: 4px
+	box-shadow: inset 0px 0px 24px rgba(#71a1d1, 0.5)
+	padding: 8px 0 10px
+	.anim-preview-title
+		padding: 0 10px 4px
+		color: white
+		font-size: 0.85em
+		text-transform: uppercase
+		letter-spacing: 1px
+	.anim-preview-meta
+		padding: 0 10px 8px
+		color: #71a1d1
+		font-size: 0.7em
+		font-family: monospace
+	.anim-preview-actions
+		padding: 0 10px 8px
+		button
+			+reset
+			width: 100%
+			line-height: 28px
+			cursor: pointer
+			color: white
+			background: rgba(0, 0, 0, 0.25)
+			border: 1px solid rgba(#71a1d1, 0.5)
+			font-family: "Nova Flat"
+			font-size: 0.75em
+			&:hover
+				background: rgba(255, 255, 255, 0.1)
+	.anim-preview-clips
+		display: flex
+		flex-direction: column
+		gap: 2px
+	.anim-clip
+		+reset
+		display: flex
+		justify-content: space-between
+		align-items: center
+		width: 100%
+		padding: 0 10px
+		line-height: 28px
+		cursor: pointer
+		color: white
+		background: transparent
+		border: 0
+		font-family: "Nova Flat"
+		font-size: 0.75em
+		text-align: left
+		&:hover
+			background: rgba(255, 255, 255, 0.1)
+		&.is-active
+			background: rgba(#71a1d1, 0.35)
+			box-shadow: inset 3px 0 0 #9fd0ff
+		.anim-clip-dur
+			color: #71a1d1
+			font-family: monospace
+			font-size: 0.9em

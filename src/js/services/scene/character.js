@@ -15,6 +15,8 @@ const init = () => gltfLoader.load('assets/models/rogue.glb')
 	.pipe(map(gltf => {
 		let character = gltf.scene;
 		// player.rotation.y = -180 * Math.PI / 180;
+		character.name = 'player';
+		character.userData = {kind: 'player', selectable: true};
 		character.castShadow = true;
 		character.receiveShadow = true;
 		character.scale.set(4, 4, 4);
@@ -66,6 +68,12 @@ const init = () => gltfLoader.load('assets/models/rogue.glb')
 		let walkAction = mixer.clipAction(animations[2]);
 		let crouchIdleAction = mixer.clipAction(animations[3]);
 		let acts = [idleAction, idle2Action, walkAction, crouchIdleAction];
+		const fallbackNames = ['idle', 'idle2', 'walk', 'crouchIdle'];
+		const clips = animations.map((clip, index) => ({
+			index,
+			name: clip.name || fallbackNames[index] || `clip-${index}`,
+			duration: clip.duration
+		}));
 
 		acts.forEach(function(action) {
 			action.setEffectiveWeight(0);
@@ -73,7 +81,7 @@ const init = () => gltfLoader.load('assets/models/rogue.glb')
 		});
 
 		acts[1].setEffectiveWeight(1);
-		return {character, skeleton, mixer, acts};
+		return {character, skeleton, mixer, acts, clips};
 	}));
 
 let lookAwayFrom = (me, target) => {
@@ -90,36 +98,48 @@ const refresh = ({scene, character, mixer, acts, state, camera}) => {
 	let running = false;
 	let crouching = state.player.crouching;
 	if (character && character.position) {
+		character.visible = state.camera.view !== 'first';
 		if (state.camera.followPlayer) {
 			character.rotation.set(0, degreeToRadiant(state.player.rotation), 0);
 		}
-		if (character.position.distanceTo(newPos) > 0) {
+		if (state.camera.view !== 'first' && character.position.distanceTo(newPos) > 0) {
 			walking = true;
 			character.lookAt(newPos);
 			if (character.position.distanceTo(newPos) >= 10) running = true;
-			console.log(character.position.distanceTo(newPos));
 		}
 		character.position.copy(newPos);
-		scene.getObjectByName('skybox').position.copy(newPos);
+		const skybox = scene.getObjectByName('skybox');
+		if (skybox) skybox.position.copy(newPos);
 	}
 
 	// sunLight.lookAt(newPos);
 
-	// manage animation
+	// manage animation — editor preview overrides play weights when player selected
+	const anim = state.editor && state.editor.anim;
+	const previewPlayer = anim && state.editor.selection &&
+		state.editor.selection.kind === 'player';
 
 	if (acts) {
-		if (walking) {
+		if (previewPlayer && anim.clipIndex != null) {
+			acts.forEach((action, index) => {
+				action.setEffectiveWeight(index === anim.clipIndex ? 1 : 0);
+			});
+		} else if (walking) {
 			acts[1].setEffectiveWeight(0);
 			acts[2].setEffectiveWeight(1);
 		} else {
 			acts[1].setEffectiveWeight(1);
 			acts[2].setEffectiveWeight(0);
 		}
-		acts[3].setEffectiveWeight(crouching ? 1 : 0);
+		if (!previewPlayer) {
+			acts[3].setEffectiveWeight(crouching ? 1 : 0);
+		}
 	}
 	let mixerUpdateDelta = clock.getDelta();
-	// console.log(character, mixer, acts);
-	if (mixer) mixer.update(mixerUpdateDelta);
+	if (mixer) {
+		mixer.timeScale = previewPlayer && anim && !anim.playing ? 0 : 1;
+		mixer.update(mixerUpdateDelta);
+	}
 };
 
 module.exports = {

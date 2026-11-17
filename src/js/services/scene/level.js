@@ -40,20 +40,20 @@ const group = (...meshes) => meshes.reduce(
 );
 
 const loadTexture = file => new THREE.TextureLoader().load(file);
-const genSkyboxMaterial = (pack, opacity = 0.3) => new THREE.MeshFaceMaterial(
-	['front', 'back', 'up', 'down', 'right', 'left']
+// Box/Cube face order: +x -x +y -y +z -z → right left up down front back
+const genSkyboxMaterials = (pack, opacity = 0.3) =>
+	['right', 'left', 'up', 'down', 'front', 'back']
 		.map(direction => new THREE.MeshBasicMaterial({
 			map: loadTexture(`assets/skybox/${pack}/${direction}.png`),
 			side: THREE.DoubleSide,
 			fog: false,
 			transparent: true,
 			opacity
-		}))
-	);
+		}));
 
 const buildSkybox = (scene) => {
-	const skyboxGeo = new THREE.CubeGeometry(1000, 1000, 1000);
-	const skybox = new THREE.Mesh(skyboxGeo, genSkyboxMaterial('neccity', 0.1));
+	const skyboxGeo = new THREE.BoxGeometry(1000, 1000, 1000);
+	const skybox = new THREE.Mesh(skyboxGeo, genSkyboxMaterials('neccity', 0.1));
 	skybox.name = 'skybox';
 	skybox.position.set(0, 0, 0);
 	scene.add(skybox);
@@ -141,6 +141,12 @@ const buildWalls = (levelGrid, tileSize, gridCenter, wallHeight, wallTexture, sc
 			const geometry = new THREE.BoxGeometry(width, wallHeight, depth);
 			const mesh = new THREE.Mesh(geometry, wallMaterial);
 			mesh.name = 'wall';
+			mesh.userData = {
+				kind: 'wall',
+				selectable: true,
+				grid: {row: z, col: x},
+				span: {length: spanLength, depth: spanDepth}
+			};
 			
 			// Position at center of span
 			const [worldX, worldZ] = toWorld(x + spanLength / 2 - 0.5, z + spanDepth / 2 - 0.5);
@@ -224,6 +230,12 @@ const buildTiles = (levelGrid, tileSize, scene) => {
 							(mesh.castShadow = true),
 							(mesh.receiveShadow = true),
 							(mesh.name = 'tile'),
+							(mesh.userData = {
+								kind: 'tile',
+								selectable: true,
+								grid: {row: z, col: x},
+								tileType: tile
+							}),
 							mesh
 						),
 						mesh => (mesh.position.set(
@@ -294,7 +306,16 @@ const buildAssets = (levelAssets, scene) => {
 								0,
 								(z - levelAssets.length / 2 + 1) * 5
 							), mesh),
-							mesh => ((mesh.name = 'asset'), mesh),
+							mesh => (
+								(mesh.name = 'asset'),
+								(mesh.userData = {
+									kind: 'asset',
+									selectable: true,
+									grid: {row: z, col: x},
+									assetId: tile
+								}),
+								mesh
+							),
 							mesh => scene.add(mesh)
 						)()
 					)

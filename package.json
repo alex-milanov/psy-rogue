@@ -5,7 +5,7 @@
   "source": "src/index.pug",
   "scripts": {
     "build": "parcel build",
-    "start": "parcel serve --host 0.0.0.0",
+    "start": "parcel serve --host 0.0.0.0 --port 3436",
     "dev": "parcel serve --host 0.0.0.0"
   },
   "author": "Alex Milanov <alex@i4web.biz>",
@@ -17,7 +17,6 @@
     "iblokz-snabbdom-helpers": "^2.0.0",
     "iblokz-state": "^1.1.0",
     "jszip": "^3.1.5",
-    "math-intrinsics": "^1.1.0",
     "raf": "^3.4.1",
     "rxjs": "^7.8.1",
     "three": "^0.100.0"
@@ -37,10 +36,5 @@
   "staticFiles": {
     "staticPath": "src/assets",
     "staticOutPath": "assets"
-  },
-  "pnpm": {
-    "overrides": {
-      "get-intrinsic": "1.2.4"
-    }
   }
 }

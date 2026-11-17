@@ -47,5 +47,6 @@ External resources, links, references
 - 📐 **Architecture Guide**: `architecture/game-scene-separation.md`
 - 🎮 **Inspirations**: `design/inspirations.md`
 - 🚀 **Quick Wins**: `design/quick-wins.md`
+- 🛠️ **Active plans**: [`../planning/`](../planning/) (e.g. level/model editor modes)
 
 

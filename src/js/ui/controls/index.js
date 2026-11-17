@@ -38,21 +38,35 @@ const toggleControl = (path, value, actions) => div('.toggle', {
 	path.slice(-1).pop()
 ]);
 
-const parseFields = (data, path, actions) => Object.keys(data)
-	.reduce((fields, field) => [].concat(fields,
-		obj.switch(typeof data[field], {
-			default: () => inputControl({
+const isPlainObject = value =>
+	value !== null && typeof value === 'object' && !Array.isArray(value);
+
+const parseFields = (data, path, actions) => {
+	if (!isPlainObject(data)) return [];
+	return Object.keys(data)
+		.reduce((fields, field) => {
+			const value = data[field];
+			// typeof null === 'object' — skip null/arrays; only nest plain objects
+			if (isPlainObject(value)) {
+				return [].concat(fields, div([].concat(
+					label({style: {paddingLeft: ((path.length - 1) * 10 + 'px')}}, field),
+					parseFields(value, [].concat(path, field), actions)
+				)));
+			}
+			if (typeof value === 'boolean') {
+				return [].concat(fields, toggleControl([].concat(path, field), value, actions));
+			}
+			if (value === null || value === undefined) {
+				return fields;
+			}
+			return [].concat(fields, inputControl({
 				title: field,
-				type: typeof data[field],
-				value: data[field],
+				type: typeof value === 'number' ? 'number' : 'text',
+				value,
 				path: [].concat(path, field)
-			}, actions),
-			object: () => div([].concat(
-				label({style: {paddingLeft: ((path.length - 1) * 10 + 'px')}}, field),
-				parseFields(data[field], [].concat(path, field), actions)
-			)),
-			boolean: () => toggleControl([].concat(path, field), data[field], actions)
-		})()), []);
+			}, actions));
+		}, []);
+};
 
 module.exports = ({state, actions}) => form('.controls', [
 	fieldset([].concat(
@@ -69,7 +83,49 @@ module.exports = ({state, actions}) => form('.controls', [
 			}),
 			'Camera'
 		]),
-		state.controls.camera && parseFields(state.camera, ['camera'], actions) || []
+		state.controls.camera ? [].concat(
+			div('.toggle', {
+				on: {click: () => actions.toggleView()}
+			}, [
+				i('.fa', {
+					class: {
+						'fa-check-square-o': state.camera.view === 'first',
+						'fa-square-o': state.camera.view !== 'first'
+					}
+				}),
+				` first-person (V) — ${state.camera.view || 'hybrid'}`
+			]),
+			div('.toggle', {
+				on: {click: () => actions.toggleOrbitMode()}
+			}, [
+				i('.fa', {
+					class: {
+						'fa-check-square-o': state.camera.mode === 'orbit',
+						'fa-square-o': state.camera.mode !== 'orbit'
+					}
+				}),
+				` orbit (O) — ${state.camera.mode || 'follow'}`
+			]),
+			div('.toggle', {
+				on: {click: () => actions.toggle(['controls', 'mouseLook'])}
+			}, [
+				i('.fa', {
+					class: {
+						'fa-check-square-o': state.controls.mouseLook,
+						'fa-square-o': !state.controls.mouseLook
+					}
+				}),
+				' mouse-look without drag (L)'
+			]),
+			parseFields({
+				distance: state.camera.distance,
+				followPlayer: state.camera.followPlayer,
+				angle: state.camera.angle,
+				pitch: state.camera.pitch,
+				eyeHeight: state.camera.eyeHeight,
+				fovFirst: state.camera.fovFirst
+			}, ['camera'], actions)
+		) : []
 	)),
 	fieldset([
 		legend('Viewport'),
@@ -100,9 +156,40 @@ module.exports = ({state, actions}) => form('.controls', [
 			]]
 		}`) : div()
 	)),
-	fieldset([
+	fieldset([].concat(
 		legend('Level Controls'),
 		div(`Current: ${state.level.name || 'Grid-based Level'}`),
+		div('.toggle', {
+			on: {click: () => actions.toggleEditMode()}
+		}, [
+			i('.fa', {
+				class: {
+					'fa-check-square-o': state.editor && state.editor.enabled,
+					'fa-square-o': !(state.editor && state.editor.enabled)
+				}
+			}),
+			' edit mode (E) — click to select'
+		]),
+		state.editor && state.editor.enabled
+			? div(state.editor.selection
+				? `Selected: ${state.editor.selection.kind}` +
+					(state.editor.selection.grid
+						? ` @ ${state.editor.selection.grid.row},${state.editor.selection.grid.col}`
+						: '') +
+					(state.editor.selection.assetId != null
+						? ` (asset ${state.editor.selection.assetId})`
+						: '') +
+					(state.editor.selection.guardId
+						? ` (${state.editor.selection.guardId})`
+						: '') +
+					` [${state.editor.selection.position.join(', ')}]`
+				: 'Click an object in the view to select it')
+			: [],
+		state.editor && state.editor.selection
+			? button(`[type="button"]`, {
+				on: {click: () => actions.selectObject(null)}
+			}, 'Clear selection')
+			: [],
 		button(`[type="button"]`, {
 			on: {
 				click: () => {
@@ -119,6 +206,6 @@ module.exports = ({state, actions}) => form('.controls', [
 				}
 			}
 		}, 'Load Procedural Level')
-	])
+	))
 ]);
 

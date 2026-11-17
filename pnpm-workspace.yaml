@@ -1,0 +1,11 @@
+allowBuilds:
+  '@parcel/watcher': true
+  '@swc/core': true
+  es5-ext: true
+  lmdb: true
+  msgpackr-extract: true
+
+# Parcel 2.12's NodePackageManager cannot resolve package exports
+# subpaths like math-intrinsics/abs (used by get-intrinsic >= 1.3).
+overrides:
+  get-intrinsic: 1.2.4

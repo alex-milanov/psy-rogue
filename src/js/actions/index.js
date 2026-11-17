@@ -10,6 +10,10 @@ const game = require('../services/game');
 // initial
 const initial = {
 	camera: {
+		// hybrid = current orbit/elevation morph; first = eye cam (does not alter hybrid math)
+		view: 'hybrid', // 'hybrid' | 'first'
+		// follow = hybrid chase; orbit = virux free sphere around player/selection
+		mode: 'follow', // 'follow' | 'orbit'
 		distance: 60,
 		range: {
 			h: 360,
@@ -18,7 +22,12 @@ const initial = {
 			vOffset: -80
 		},
 		followPlayer: true,
-		angle: {x: 45, y: 210}
+		angle: {x: 45, y: 210},
+		pitch: 0,
+		eyeHeight: 5,
+		fov: 45,
+		fovFirst: 75,
+		hybridSnapshot: null
 	},
 	player: {
 		position: [-10, 0.2, 35],
@@ -38,12 +47,21 @@ const initial = {
 			y: 0,
 			changeX: 0,
 			changeY: 0,
-			down: false
+			down: false,
+			overCanvas: false
 		}
 	},
 	controls: {
 		on: true,
-		camera: false
+		camera: false,
+		// rotate / look on mouse move without holding button (when over canvas)
+		mouseLook: false
+	},
+	editor: {
+		enabled: false,
+		selection: null, // { kind, name, uuid, position, grid?, assetId?, guardId? }
+		// Character/NPC clip preview when selection is player|guard
+		anim: null // { clips: [{index,name,duration}], clipIndex, playing }
 	},
 	minimap: {
 		enabled: true,
@@ -60,9 +78,17 @@ const arrToggle = (key, value) => state =>
 		arr.toggle(obj.sub(state, key), value)
 	);
 
-const zoom = amount => state => obj.patch(state, 'camera', {
-	distance: state.camera.distance + amount
-});
+const zoom = amount => state => {
+	if (state.camera.view === 'first') {
+		const fov = state.camera.fovFirst != null ? state.camera.fovFirst : 75;
+		return obj.patch(state, 'camera', {
+			fovFirst: Math.max(50, Math.min(100, fov + amount))
+		});
+	}
+	return obj.patch(state, 'camera', {
+		distance: Math.max(12, state.camera.distance + amount)
+	});
+};
 
 const degreeToRadiant = deg => Math.PI / (180 / deg);
 const calcucalateAngle = (viewport, range) => ({
@@ -85,6 +111,78 @@ const move = (direction, force) =>
 		]
 	});
 
+const toggleView = () => state => {
+	if (state.camera.view === 'first') {
+		const snap = state.camera.hybridSnapshot || {};
+		return obj.patch(state, 'camera', {
+			view: 'hybrid',
+			angle: snap.angle ? {...snap.angle} : state.camera.angle,
+			distance: snap.distance != null ? snap.distance : state.camera.distance,
+			hybridSnapshot: null,
+			pitch: 0
+		});
+	}
+	return obj.patch(state, 'camera', {
+		view: 'first',
+		hybridSnapshot: {
+			angle: {...(state.camera.angle || {x: 45, y: 210})},
+			distance: state.camera.distance
+		},
+		pitch: 0
+	});
+};
+
+const toggleEditMode = () => state => {
+	const enabling = !state.editor.enabled;
+	return obj.patch(state, 'editor', {
+		enabled: enabling,
+		selection: enabling ? state.editor.selection : null,
+		anim: enabling ? state.editor.anim : null
+	});
+};
+
+const selectObject = (selection, anim) => state => {
+	const isActor = selection && (selection.kind === 'player' || selection.kind === 'guard');
+	const nextAnim = isActor
+		? (anim || state.editor.anim)
+		: null;
+	return obj.patch(state, 'editor', {
+		...state.editor,
+		selection,
+		anim: nextAnim
+			? {
+				clips: nextAnim.clips || [],
+				clipIndex: nextAnim.clipIndex != null ? nextAnim.clipIndex : 0,
+				playing: nextAnim.playing !== false
+			}
+			: null
+	});
+};
+
+const setAnimClip = clipIndex => state => {
+	if (!state.editor.anim) return state;
+	return obj.patch(state, ['editor', 'anim'], {
+		...state.editor.anim,
+		clipIndex,
+		playing: true
+	});
+};
+
+const toggleAnimPlaying = () => state => {
+	if (!state.editor.anim) return state;
+	return obj.patch(state, ['editor', 'anim', 'playing'], !state.editor.anim.playing);
+};
+
+const toggleOrbitMode = () => state => {
+	if (state.camera.mode === 'orbit') {
+		return obj.patch(state, ['camera', 'mode'], 'follow');
+	}
+	return obj.patch(state, 'camera', {
+		mode: 'orbit',
+		view: state.camera.view === 'first' ? 'hybrid' : state.camera.view
+	});
+};
+
 module.exports = {
 	initial,
 	counter,
@@ -93,5 +191,11 @@ module.exports = {
 	toggle,
 	arrToggle,
 	zoom,
-	move
+	move,
+	toggleView,
+	toggleEditMode,
+	selectObject,
+	setAnimClip,
+	toggleAnimPlaying,
+	toggleOrbitMode
 };

@@ -36,15 +36,27 @@ const init = () => gltfLoader.load('assets/models/guard.glb')
 			let idleAction = mixer.clipAction(animations[0]);
 			let walkAction = mixer.clipAction(animations[1]);
 			let acts = [idleAction, walkAction];
+			const fallbackNames = ['idle', 'walk'];
+			const clips = animations.map((clip, i) => ({
+				index: i,
+				name: clip.name || fallbackNames[i] || `clip-${i}`,
+				duration: clip.duration
+			}));
 			acts.forEach(function(action) {
 				action.setEffectiveWeight(0);
 				action.play();
 			});
 			
 			// Store guard ID to match with game state
+			model.name = 'guard';
 			model.guardId = `guard-${index + 1}`;
+			model.userData = {
+				kind: 'guard',
+				selectable: true,
+				guardId: model.guardId
+			};
 			
-			return {model, mixer, acts};
+			return {model, mixer, acts, clips};
 		});
 		return guards;
 	}));
@@ -63,17 +75,27 @@ const refresh = ({scene, guards, state}) => {
 			guard.model.position.copy(new THREE.Vector3().fromArray(gameGuard.position));
 			guard.model.rotation.y = gameGuard.rotation;
 			
-			// Update animation based on mode
-			if (gameGuard.mode === 'walk') {
+			const anim = state.editor && state.editor.anim;
+			const previewThis = anim && state.editor.selection &&
+				state.editor.selection.kind === 'guard' &&
+				state.editor.selection.guardId === guard.model.guardId;
+
+			if (previewThis && anim.clipIndex != null) {
+				guard.acts.forEach((action, i) => {
+					action.setEffectiveWeight(i === anim.clipIndex ? 1 : 0);
+				});
+			} else if (gameGuard.mode === 'walk') {
 				guard.acts[1].setEffectiveWeight(1);
 				guard.acts[0].setEffectiveWeight(0);
 			} else {
 				guard.acts[1].setEffectiveWeight(0);
 				guard.acts[0].setEffectiveWeight(1);
 			}
-			
-			// Update animation mixer
-			if (guard.mixer) guard.mixer.update(mixerUpdateDelta);
+
+			if (guard.mixer) {
+				guard.mixer.timeScale = previewThis && anim && !anim.playing ? 0 : 1;
+				guard.mixer.update(mixerUpdateDelta);
+			}
 		});
 	}
 	

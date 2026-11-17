@@ -39,6 +39,30 @@ const hook = ({state$, actions}) => {
 			.subscribe(() => actions.toggle(['minimap', 'enabled']))
 	);
 
+	// First-person / hybrid toggle (V key) — does not change hybrid orbit math
+	subs.push(
+		keyboard.on('v')
+			.subscribe(() => actions.toggleView())
+	);
+
+	// Free mouse-look without drag (L key)
+	subs.push(
+		keyboard.on('l')
+			.subscribe(() => actions.toggle(['controls', 'mouseLook']))
+	);
+
+	// Virux-style free orbit around player / edit selection (O key)
+	subs.push(
+		keyboard.on('o')
+			.subscribe(() => actions.toggleOrbitMode())
+	);
+
+	// Edit mode: click-to-select (E key)
+	subs.push(
+		keyboard.on('e')
+			.subscribe(() => actions.toggleEditMode())
+	);
+
 	const directionForce$ = pressedKeys$
 		.pipe(
 			map(keys => (console.log('keys', keys), keys)),
@@ -66,17 +90,39 @@ const hook = ({state$, actions}) => {
 		).subscribe(({direction, force}) => actions.move(direction, force))
 	);
 
-	// Mouse rotation control (horizontal camera rotation updates player facing)
+	const looking = state =>
+		state.viewport.mouse.down ||
+		(state.controls.mouseLook && state.viewport.mouse.overCanvas);
+
+	// Mouse look: yaw updates player facing; pitch only in first-person
+	// With controls.mouseLook, works on move over canvas without holding button
 	subs.push(
 		time.frame().pipe(
 			withLatestFrom(state$, (t, state) => state),
-			distinctUntilChanged((a, b) => a.viewport.mouse.changeX === b.viewport.mouse.changeX && a.viewport.mouse.down === b.viewport.mouse.down),
-			filter(state => state.viewport.mouse.down)
-		).subscribe(state => actions.set(['player', 'rotation'],
-			Number((
-				(state.camera.range.h + state.player.rotation -
-					state.viewport.mouse.changeX * 0.3) % state.camera.range.h))
-		))
+			distinctUntilChanged((a, b) =>
+				a.viewport.mouse.changeX === b.viewport.mouse.changeX &&
+				a.viewport.mouse.changeY === b.viewport.mouse.changeY &&
+				a.viewport.mouse.down === b.viewport.mouse.down &&
+				a.viewport.mouse.overCanvas === b.viewport.mouse.overCanvas &&
+				a.camera.view === b.camera.view &&
+				a.controls.mouseLook === b.controls.mouseLook
+			),
+			filter(state => looking(state) &&
+				state.camera.mode !== 'orbit' &&
+				(state.viewport.mouse.changeX !== 0 || state.viewport.mouse.changeY !== 0))
+		).subscribe(state => {
+			actions.set(['player', 'rotation'],
+				Number((
+					(state.camera.range.h + state.player.rotation -
+						state.viewport.mouse.changeX * 0.3) % state.camera.range.h))
+			);
+			if (state.camera.view === 'first') {
+				const pitch = Math.max(-85, Math.min(85,
+					(state.camera.pitch || 0) - state.viewport.mouse.changeY * 0.3
+				));
+				actions.set(['camera', 'pitch'], pitch);
+			}
+		})
 	);
 
 	// Force tracking
