@@ -17,6 +17,7 @@ const _character = require('./character');
 const npcs = require('./npcs');
 const {mouseToObject} = require('../../util/three/pick');
 const {syncSelectionHelper} = require('./select');
+const {createGizmo} = require('./gizmo');
 
 const init = ({canvas, state}) => {
 	let width = canvas.offsetWidth || state.viewport.screen.width || 800;
@@ -88,6 +89,10 @@ const render = (sceneState) => {
 		sceneState.selectionHelper.update();
 	}
 
+	if (sceneState.gizmoApi) {
+		sceneState.gizmoApi.sync({state});
+	}
+
 	renderer.setSize(state.viewport.screen.width, state.viewport.screen.height);
 	renderer.render(scene, camera);
 	return sceneState;
@@ -106,7 +111,16 @@ let hook = ({state$, actions, minimap}) => {
 			filter(el => el),
 			take(1),
 			withLatestFrom(state$, (canvas, state) => ({canvas, state})),
-			map(({canvas, state}) => () => init({canvas, state}))
+			map(({canvas, state}) => () => {
+				const base = init({canvas, state});
+				const gizmoApi = createGizmo({
+					camera: base.camera,
+					domElement: base.canvas,
+					scene: base.scene,
+					actions
+				});
+				return {...base, gizmoApi};
+			})
 		);
 
 	// Hold actor payloads until scene exists, then attach (same race virux avoids by slower loads)
@@ -218,10 +232,17 @@ let hook = ({state$, actions, minimap}) => {
 			.pipe(
 				filter(() => pointer.active && !pointer.moved),
 				withLatestFrom(state$, (ev, state) => ({ev, state})),
-				filter(({state}) => state.editor && state.editor.enabled)
+				filter(({state}) => state.editor && state.editor.enabled &&
+					!state.editor.gizmoDragging)
 			)
 			.subscribe(({ev, state}) => {
 				const sceneState = latestSceneState;
+				// Don't re-pick when releasing on the gizmo itself
+				if (sceneState.gizmoApi && sceneState.gizmoApi.gizmo &&
+					sceneState.gizmoApi.gizmo.dragging) {
+					pointer = {active: false, x: 0, y: 0, moved: false};
+					return;
+				}
 				const selection = mouseToObject({
 					camera: sceneState.camera,
 					scene: sceneState.scene,

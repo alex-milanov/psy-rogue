@@ -190,6 +190,44 @@ module.exports = ({state, actions}) => form('.controls', [
 				on: {click: () => actions.selectObject(null)}
 			}, 'Clear selection')
 			: [],
+		state.editor && state.editor.enabled && state.editor.selection
+			? div([
+				div('Gizmo'),
+				div('.toggle', {
+					on: {click: () => actions.setGizmoMode('translate')}
+				}, [
+					i('.fa', {
+						class: {
+							'fa-check-square-o': state.editor.gizmoMode === 'translate',
+							'fa-square-o': state.editor.gizmoMode !== 'translate'
+						}
+					}),
+					' move (M)'
+				]),
+				div('.toggle', {
+					on: {click: () => actions.setGizmoMode('rotate')}
+				}, [
+					i('.fa', {
+						class: {
+							'fa-check-square-o': state.editor.gizmoMode === 'rotate',
+							'fa-square-o': state.editor.gizmoMode !== 'rotate'
+						}
+					}),
+					' rotate (R)'
+				]),
+				div('.toggle', {
+					on: {click: () => actions.setGizmoMode('scale')}
+				}, [
+					i('.fa', {
+						class: {
+							'fa-check-square-o': state.editor.gizmoMode === 'scale',
+							'fa-square-o': state.editor.gizmoMode !== 'scale'
+						}
+					}),
+					' scale (S)'
+				])
+			])
+			: [],
 		button(`[type="button"]`, {
 			on: {
 				click: () => {
@@ -202,10 +240,28 @@ module.exports = ({state, actions}) => form('.controls', [
 					console.log(levelGenDebug.gridToASCII(levelData));
 					console.log('Player Start:', levelData.playerStart);
 					console.log('Guards:', levelData.guards);
-					actions.level.load(levelData.map, levelData.assets, levelData.playerStart, levelData.guards);
+					actions.level.load(
+						levelData.map,
+						levelData.assets,
+						levelData.playerStart,
+						levelData.guards,
+						'procedural'
+					);
 				}
 			}
-		}, 'Load Procedural Level')
+		}, 'Load Procedural Level'),
+		button(`[type="button"]`, {
+			on: {click: () => actions.level.save()}
+		}, 'Save Level JSON'),
+		button(`[type="button"]`, {
+			on: {click: () => actions.level.open()}
+		}, 'Open Level JSON'),
+		button(`[type="button"]`, {
+			on: {click: () => actions.undo()}
+		}, 'Undo'),
+		button(`[type="button"]`, {
+			on: {click: () => actions.redo()}
+		}, 'Redo')
 	)),
 	fieldset([].concat(
 		legend({
@@ -222,14 +278,16 @@ module.exports = ({state, actions}) => form('.controls', [
 			'Hotkeys'
 		]),
 		state.controls.hotkeys ? [
-			div('WASD / arrows — move'),
+			div('WASD / arrows — move (edit: arrows only)'),
 			div('Shift — run'),
 			div('C — crouch'),
-			div('M — minimap'),
+			div('M — minimap (edit: gizmo move)'),
 			div('V — first-person'),
 			div('L — mouse-look (no drag)'),
 			div('O — free orbit'),
 			div('E — edit mode'),
+			div('M / R / S — gizmo move / rotate / scale (edit)'),
+			div('Ctrl+Z / Ctrl+Y — undo / redo'),
 			div('Drag — look / orbit'),
 			div('Scroll — zoom')
 		] : []

@@ -71,9 +71,16 @@ const refresh = ({scene, guards, state}) => {
 			const gameGuard = state.game.guards.find(g => g.id === guard.model.guardId);
 			if (!gameGuard) return;
 			
-			// Update position from game state
-			guard.model.position.copy(new THREE.Vector3().fromArray(gameGuard.position));
-			guard.model.rotation.y = gameGuard.rotation;
+			const gizmoOnThis = state.editor && state.editor.gizmoDragging &&
+				state.editor.selection &&
+				state.editor.selection.kind === 'guard' &&
+				state.editor.selection.guardId === guard.model.guardId;
+
+			// Update pose from game state unless gizmo is dragging this guard
+			if (!gizmoOnThis) {
+				guard.model.position.copy(new THREE.Vector3().fromArray(gameGuard.position));
+				guard.model.rotation.y = gameGuard.rotation;
+			}
 			
 			const anim = state.editor && state.editor.anim;
 			const previewClips = anim && state.editor.selection &&

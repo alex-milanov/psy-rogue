@@ -18,7 +18,7 @@ module.exports = ({state, actions}) => section('#ui', [
 	]),
 	section('#view3d'),
 	footer([
-		h2('WASD move · C crouch · drag look · scroll zoom')
+		h2('WASD / arrows move · C crouch · drag look · scroll zoom')
 	]),
 	div('.overlay'),
 	minimap({state, actions}),

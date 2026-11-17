@@ -1,6 +1,11 @@
+'use strict';
+
+const {toDocument, downloadDocument, pickJsonFile} = require('../../util/levelIO');
+const history = require('./history');
 
 const initial = {
 	needsReload: false,
+	name: null,
 	map: [
 		[2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
 		[2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2],
@@ -65,18 +70,49 @@ const initial = {
 	]
 };
 
-const load = (map, assets, playerStart, guards) => state => ({
-	...state, 
-	level: {
-		map, 
-		assets, 
-		needsReload: true,
-		playerStart,
-		guards
-	}
-});
+const load = (map, assets, playerStart, guards, name) => state => {
+	history.clear();
+	return {
+		...state,
+		level: {
+			...state.level,
+			map,
+			assets,
+			needsReload: true,
+			playerStart,
+			guards,
+			name: name || state.level.name || null
+		}
+	};
+};
+
+/** Side-effect download of current level document (runs when reducer applies). */
+const save = () => state => {
+	downloadDocument(toDocument(state));
+	return state;
+};
+
+/**
+ * File picker → load. Returns a Promise of a state patcher
+ * (iblokz-state adapt() accepts thenables).
+ */
+const open = () => pickJsonFile()
+	.then(({name, data}) => {
+		if (!data || !data.map || !data.assets) {
+			console.warn('Invalid level JSON', data);
+			return s => s;
+		}
+		const levelName = (data.name || name || 'level').replace(/\.json$/i, '');
+		return load(data.map, data.assets, data.playerStart, data.guards, levelName);
+	})
+	.catch(err => {
+		console.warn('Level open cancelled or failed', err);
+		return s => s;
+	});
 
 module.exports = {
 	initial,
-	load
+	load,
+	save,
+	open
 };

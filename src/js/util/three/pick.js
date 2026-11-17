@@ -48,7 +48,17 @@ const describeObject = object => {
 		kind,
 		name: object.name || kind,
 		uuid: object.uuid,
-		position: [pos.x, pos.y, pos.z].map(v => Number(v.toFixed(2))),
+		position: [pos.x, pos.y, pos.z].map(v => Number(v.toFixed(3))),
+		rotation: [
+			Number(object.rotation.x.toFixed(4)),
+			Number(object.rotation.y.toFixed(4)),
+			Number(object.rotation.z.toFixed(4))
+		],
+		scale: [
+			Number(object.scale.x.toFixed(3)),
+			Number(object.scale.y.toFixed(3)),
+			Number(object.scale.z.toFixed(3))
+		],
 		grid: (object.userData && object.userData.grid) || null,
 		assetId: (object.userData && object.userData.assetId) || null,
 		tileType: (object.userData && object.userData.tileType) != null

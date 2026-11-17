@@ -20,8 +20,10 @@ const isOrbit = state =>
 	state.camera.mode === 'orbit' && state.camera.view !== 'first';
 
 const looking = state =>
-	state.viewport.mouse.down ||
-	(state.controls.mouseLook && state.viewport.mouse.overCanvas);
+	!(state.editor && state.editor.gizmoDragging) && (
+		state.viewport.mouse.down ||
+		(state.controls.mouseLook && state.viewport.mouse.overCanvas)
+	);
 
 const hook = ({state$, actions}) => {
 	// Hybrid-only: orbit elevation + sync yaw from player

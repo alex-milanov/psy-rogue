@@ -6,6 +6,7 @@ const {obj, arr} = require('iblokz-data');
 const counter = require('./counter');
 const level = require('./level');
 const game = require('../services/game');
+const editorHistory = require('./level/history');
 
 // initial
 const initial = {
@@ -61,9 +62,10 @@ const initial = {
 	editor: {
 		enabled: false,
 		selection: null, // { kind, name, uuid, position, grid?, assetId?, guardId? }
-		// Character/NPC clip preview when selection is player|guard
 		// Character edit: clip catalog + multi-select override; paused freezes that actor's game action
-		anim: null // { clips, clipIndices: number[], paused: boolean }
+		anim: null, // { clips, clipIndices: number[], paused: boolean }
+		gizmoMode: 'translate', // 'translate' | 'rotate' | 'scale'
+		gizmoDragging: false
 	},
 	minimap: {
 		enabled: true,
@@ -139,7 +141,9 @@ const toggleEditMode = () => state => {
 	return obj.patch(state, 'editor', {
 		enabled: enabling,
 		selection: enabling ? state.editor.selection : null,
-		anim: enabling ? state.editor.anim : null
+		anim: enabling ? state.editor.anim : null,
+		gizmoDragging: false,
+		gizmoMode: state.editor.gizmoMode || 'translate'
 	});
 };
 
@@ -185,6 +189,79 @@ const toggleOrbitMode = () => state => {
 	});
 };
 
+const setGizmoMode = mode => state => {
+	if (['translate', 'rotate', 'scale'].indexOf(mode) === -1) return state;
+	return obj.patch(state, ['editor', 'gizmoMode'], mode);
+};
+
+/**
+ * Sync selection (+ player/guard document pose) from a live mesh transform.
+ * No history — Qoole records mesh matrix undo/redo in the gizmo instead.
+ */
+const applyObjectPose = ({position, rotation, rotationY, scale}) => state => {
+	const sel = state.editor && state.editor.selection;
+	if (!sel) return state;
+
+	const nextRotation = rotation || (
+		rotationY != null
+			? [
+				(sel.rotation && sel.rotation[0]) || 0,
+				rotationY,
+				(sel.rotation && sel.rotation[2]) || 0
+			]
+			: sel.rotation
+	);
+
+	let next = obj.patch(state, ['editor', 'selection'], {
+		...sel,
+		position: position || sel.position,
+		rotation: nextRotation,
+		scale: scale || sel.scale
+	});
+
+	if (sel.kind === 'player' && position) {
+		const yaw = nextRotation ? nextRotation[1] : rotationY;
+		const rotationDeg = yaw != null
+			? Number(((yaw * 180) / Math.PI).toFixed(2))
+			: next.player.rotation;
+		next = obj.patch(next, 'player', {
+			...next.player,
+			position,
+			rotation: rotationDeg
+		});
+	}
+
+	if (sel.kind === 'guard' && sel.guardId && position && next.game && next.game.guards) {
+		const yaw = nextRotation ? nextRotation[1] : rotationY;
+		next = obj.patch(next, ['game', 'guards'],
+			next.game.guards.map(guard => guard.id !== sel.guardId
+				? guard
+				: {
+					...guard,
+					position: [...position],
+					rotation: yaw != null ? yaw : guard.rotation
+				})
+		);
+	}
+
+	return next;
+};
+
+// Back-compat aliases used by gizmo
+const seedSelectionTransform = applyObjectPose;
+const commitSelectionTransform = applyObjectPose;
+
+/** Qoole: run stored undo/redo fns (mesh matrix restore + pose sync). */
+const undo = () => {
+	editorHistory.undo();
+	return state => state;
+};
+
+const redo = () => {
+	editorHistory.redo();
+	return state => state;
+};
+
 module.exports = {
 	initial,
 	counter,
@@ -199,5 +276,11 @@ module.exports = {
 	selectObject,
 	toggleAnimClip,
 	toggleCharacterPaused,
-	toggleOrbitMode
+	toggleOrbitMode,
+	setGizmoMode,
+	applyObjectPose,
+	seedSelectionTransform,
+	commitSelectionTransform,
+	undo,
+	redo
 };

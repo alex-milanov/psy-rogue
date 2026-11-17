@@ -1,6 +1,7 @@
 'use strict';
 
 // lib
+const {fromEvent} = require('rxjs');
 const { map, filter, distinctUntilChanged, withLatestFrom, share } = require('rxjs/operators');
 
 // util
@@ -8,18 +9,21 @@ const keyboard = require('../../util/keyboard');
 const time = require('../../util/time');
 const cameraControl = require('./camera');
 
-const getDirection = keys => ([
-	(keys.left || keys.a) && 1 || (keys.right || keys.d) && -1 || 0,
+const isEditing = state => !!(state.editor && state.editor.enabled);
+
+// Arrows always move; WASD only outside edit (Qoole uses M/R/S there)
+const getDirection = (keys, editing) => ([
+	(keys.left || (!editing && keys.a)) && 1 || (keys.right || (!editing && keys.d)) && -1 || 0,
 	0,
-	(keys.up || keys.w) && 1 || (keys.down || keys.s) && -1 || 0
+	(keys.up || (!editing && keys.w)) && 1 || (keys.down || (!editing && keys.s)) && -1 || 0
 ]);
 
-const getForce = keys =>
+const getForce = (keys, editing) =>
 	(keys.shift && 0.2 || 0.1) *
 	(keys.c && 0.5 || 1) *
 		((
 			keys.left || keys.right || keys.up || keys.down
-			|| keys.a || keys.d || keys.w || keys.s
+			|| (!editing && (keys.a || keys.d || keys.w || keys.s))
 		) ? 1 : 0);
 
 let unhook = () => {};
@@ -32,11 +36,18 @@ const hook = ({state$, actions}) => {
 
 	// Watch keyboard input
 	const pressedKeys$ = keyboard.watch(['left', 'right', 'up', 'down', 'shift', 'w', 'a', 's', 'd', 'c']);
-	
-	// Minimap toggle (M key)
+
+	// M: gizmo move in edit (Qoole), otherwise minimap
 	subs.push(
 		keyboard.on('m')
-			.subscribe(() => actions.toggle(['minimap', 'enabled']))
+			.pipe(withLatestFrom(state$, (ev, state) => state))
+			.subscribe(state => {
+				if (isEditing(state)) {
+					actions.setGizmoMode('translate');
+				} else {
+					actions.toggle(['minimap', 'enabled']);
+				}
+			})
 	);
 
 	// First-person / hybrid toggle (V key) — does not change hybrid orbit math
@@ -63,12 +74,41 @@ const hook = ({state$, actions}) => {
 			.subscribe(() => actions.toggleEditMode())
 	);
 
+	// Qoole-style gizmo modes in edit: M move, R rotate, S scale
+	[
+		['r', 'rotate'],
+		['s', 'scale']
+	].forEach(([key, mode]) => {
+		subs.push(
+			keyboard.on(key)
+				.pipe(withLatestFrom(state$, (ev, state) => state))
+				.subscribe(state => {
+					if (isEditing(state)) actions.setGizmoMode(mode);
+				})
+		);
+	});
+
+	// Undo / redo (Ctrl/Cmd+Z, Ctrl/Cmd+Y or Shift+Z)
+	subs.push(
+		fromEvent(document, 'keydown').subscribe(ev => {
+			if (!(ev.ctrlKey || ev.metaKey)) return;
+			const key = (ev.key || '').toLowerCase();
+			if (key === 'z' && !ev.shiftKey) {
+				ev.preventDefault();
+				actions.undo();
+			} else if (key === 'y' || (key === 'z' && ev.shiftKey)) {
+				ev.preventDefault();
+				actions.redo();
+			}
+		})
+	);
+
 	const directionForce$ = pressedKeys$
 		.pipe(
-			map(keys => (console.log('keys', keys), keys)),
-			map(keys => ({
-				direction: getDirection(keys),
-				force: getForce(keys)
+			withLatestFrom(state$, (keys, state) => ({keys, editing: isEditing(state)})),
+			map(({keys, editing}) => ({
+				direction: getDirection(keys, editing),
+				force: getForce(keys, editing)
 			})),
 			share()
 		);
@@ -115,6 +155,7 @@ const hook = ({state$, actions}) => {
 			),
 			filter(state => looking(state) &&
 				state.camera.mode !== 'orbit' &&
+				!(state.editor && state.editor.gizmoDragging) &&
 				(state.viewport.mouse.changeX !== 0 || state.viewport.mouse.changeY !== 0))
 		).subscribe(state => {
 			actions.set(['player', 'rotation'],
@@ -155,4 +196,3 @@ module.exports = {
 	hook,
 	unhook: () => unhook()
 };
-

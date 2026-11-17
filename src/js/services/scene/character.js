@@ -97,19 +97,25 @@ const refresh = ({scene, character, mixer, acts, state, camera}) => {
 	let walking = false;
 	let running = false;
 	let crouching = state.player.crouching;
+	const sel = state.editor && state.editor.selection;
+	const gizmoOnPlayer = state.editor && state.editor.gizmoDragging &&
+		sel && sel.kind === 'player';
+
 	if (character && character.position) {
 		character.visible = state.camera.view !== 'first';
-		if (state.camera.followPlayer) {
-			character.rotation.set(0, degreeToRadiant(state.player.rotation), 0);
+		if (!gizmoOnPlayer) {
+			if (state.camera.followPlayer) {
+				character.rotation.set(0, degreeToRadiant(state.player.rotation), 0);
+			}
+			if (state.camera.view !== 'first' && character.position.distanceTo(newPos) > 0) {
+				walking = true;
+				character.lookAt(newPos);
+				if (character.position.distanceTo(newPos) >= 10) running = true;
+			}
+			character.position.copy(newPos);
 		}
-		if (state.camera.view !== 'first' && character.position.distanceTo(newPos) > 0) {
-			walking = true;
-			character.lookAt(newPos);
-			if (character.position.distanceTo(newPos) >= 10) running = true;
-		}
-		character.position.copy(newPos);
 		const skybox = scene.getObjectByName('skybox');
-		if (skybox) skybox.position.copy(newPos);
+		if (skybox) skybox.position.copy(gizmoOnPlayer ? character.position : newPos);
 	}
 
 	// sunLight.lookAt(newPos);
