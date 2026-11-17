@@ -82,11 +82,17 @@ const hook = ({state$, actions}) => {
 			.subscribe(keys => actions.set(['player', 'crouching'], keys.c))
 	);
 
-	// Movement control
+	// Movement control — skip when character-edit has player action paused
 	subs.push(
 		time.frame().pipe(
-			withLatestFrom(directionForce$, (t, df) => df),
-			filter(({force}) => force > 0)
+			withLatestFrom(directionForce$, state$, (t, df, state) => ({...df, state})),
+			filter(({force, state}) => {
+				if (force <= 0) return false;
+				const anim = state.editor && state.editor.anim;
+				const sel = state.editor && state.editor.selection;
+				if (anim && anim.paused && sel && sel.kind === 'player') return false;
+				return true;
+			})
 		).subscribe(({direction, force}) => actions.move(direction, force))
 	);
 

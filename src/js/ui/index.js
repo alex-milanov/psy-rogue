@@ -9,7 +9,7 @@ const {
 // components
 const controls = require('./controls');
 const minimap = require('./minimap');
-const animPreview = require('./anim-preview');
+const characterEdit = require('./character-edit');
 
 module.exports = ({state, actions}) => section('#ui', [
 	header([
@@ -18,12 +18,11 @@ module.exports = ({state, actions}) => section('#ui', [
 	]),
 	section('#view3d'),
 	footer([
-		p('Drag to look/orbit, or L for free mouse-look on canvas. Scroll zooms. V = first-person, O = orbit, E = edit.'),
-		h2('WASD move, C crouch, M minimap, V first-person, L mouse-look, O orbit, E edit')
+		h2('WASD move · C crouch · drag look · scroll zoom')
 	]),
 	div('.overlay'),
 	minimap({state, actions}),
-	animPreview({state, actions}),
+	characterEdit({state, actions}),
 	controls({state, actions})
 	// audio(`[src="assets/samples/ambient.ogg"][autoplay="true"][controls="true"][loop="true"]`)
 ]);

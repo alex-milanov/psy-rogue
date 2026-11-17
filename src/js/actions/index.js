@@ -54,6 +54,7 @@ const initial = {
 	controls: {
 		on: true,
 		camera: false,
+		hotkeys: false,
 		// rotate / look on mouse move without holding button (when over canvas)
 		mouseLook: false
 	},
@@ -61,7 +62,8 @@ const initial = {
 		enabled: false,
 		selection: null, // { kind, name, uuid, position, grid?, assetId?, guardId? }
 		// Character/NPC clip preview when selection is player|guard
-		anim: null // { clips: [{index,name,duration}], clipIndex, playing }
+		// Character edit: clip catalog + multi-select override; paused freezes that actor's game action
+		anim: null // { clips, clipIndices: number[], paused: boolean }
 	},
 	minimap: {
 		enabled: true,
@@ -152,25 +154,25 @@ const selectObject = (selection, anim) => state => {
 		anim: nextAnim
 			? {
 				clips: nextAnim.clips || [],
-				clipIndex: nextAnim.clipIndex != null ? nextAnim.clipIndex : 0,
-				playing: nextAnim.playing !== false
+				// no auto-pick — empty means follow game state (e.g. walk+crouch)
+				clipIndices: Array.isArray(nextAnim.clipIndices) ? nextAnim.clipIndices : [],
+				// freeze subject movement/AI while inspecting (anims still run)
+				paused: nextAnim.paused !== false
 			}
 			: null
 	});
 };
 
-const setAnimClip = clipIndex => state => {
+const toggleAnimClip = clipIndex => state => {
 	if (!state.editor.anim) return state;
-	return obj.patch(state, ['editor', 'anim'], {
-		...state.editor.anim,
-		clipIndex,
-		playing: true
-	});
+	return obj.patch(state, ['editor', 'anim', 'clipIndices'],
+		arr.toggle(state.editor.anim.clipIndices || [], clipIndex)
+	);
 };
 
-const toggleAnimPlaying = () => state => {
+const toggleCharacterPaused = () => state => {
 	if (!state.editor.anim) return state;
-	return obj.patch(state, ['editor', 'anim', 'playing'], !state.editor.anim.playing);
+	return obj.patch(state, ['editor', 'anim', 'paused'], !state.editor.anim.paused);
 };
 
 const toggleOrbitMode = () => state => {
@@ -195,7 +197,7 @@ module.exports = {
 	toggleView,
 	toggleEditMode,
 	selectObject,
-	setAnimClip,
-	toggleAnimPlaying,
+	toggleAnimClip,
+	toggleCharacterPaused,
 	toggleOrbitMode
 };

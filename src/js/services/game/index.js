@@ -80,10 +80,17 @@ const updateGuard = (guard) => {
 	return guard;
 };
 
+const isGuardActionPaused = (state, guardId) => {
+	const anim = state.editor && state.editor.anim;
+	const sel = state.editor && state.editor.selection;
+	return !!(anim && anim.paused && sel && sel.kind === 'guard' && sel.guardId === guardId);
+};
+
 const loop = ({state}) => {
-	// Update all guards
-	const guards = state.game.guards.map(updateGuard);
-	return { guards };
+	const guards = state.game.guards.map(guard =>
+		isGuardActionPaused(state, guard.id) ? guard : updateGuard(guard)
+	);
+	return {guards};
 };
 
 const actions = {

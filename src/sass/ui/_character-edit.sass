@@ -1,4 +1,4 @@
-.anim-preview
+.character-edit
 	position: absolute
 	top: 280px
 	right: 16px
@@ -13,18 +13,18 @@
 	border-left-width: 4px
 	box-shadow: inset 0px 0px 24px rgba(#71a1d1, 0.5)
 	padding: 8px 0 10px
-	.anim-preview-title
+	.character-edit-title
 		padding: 0 10px 4px
 		color: white
 		font-size: 0.85em
 		text-transform: uppercase
 		letter-spacing: 1px
-	.anim-preview-meta
+	.character-edit-meta
 		padding: 0 10px 8px
 		color: #71a1d1
 		font-size: 0.7em
 		font-family: monospace
-	.anim-preview-actions
+	.character-edit-actions
 		padding: 0 10px 8px
 		button
 			+reset
@@ -38,11 +38,17 @@
 			font-size: 0.75em
 			&:hover
 				background: rgba(255, 255, 255, 0.1)
-	.anim-preview-clips
+	.character-edit-section
+		padding: 4px 10px 2px
+		color: #9fd0ff
+		font-size: 0.7em
+		text-transform: uppercase
+		letter-spacing: 1px
+	.character-edit-clips
 		display: flex
 		flex-direction: column
 		gap: 2px
-	.anim-clip
+	.character-edit-clip
 		+reset
 		display: flex
 		justify-content: space-between
@@ -62,7 +68,7 @@
 		&.is-active
 			background: rgba(#71a1d1, 0.35)
 			box-shadow: inset 3px 0 0 #9fd0ff
-		.anim-clip-dur
+		.character-edit-clip-dur
 			color: #71a1d1
 			font-family: monospace
 			font-size: 0.9em

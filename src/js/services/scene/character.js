@@ -114,32 +114,32 @@ const refresh = ({scene, character, mixer, acts, state, camera}) => {
 
 	// sunLight.lookAt(newPos);
 
-	// manage animation — editor preview overrides play weights when player selected
+	// Editor multi-select overrides play weights; empty clipIndices → game state
 	const anim = state.editor && state.editor.anim;
-	const previewPlayer = anim && state.editor.selection &&
-		state.editor.selection.kind === 'player';
+	const previewClips = anim && state.editor.selection &&
+		state.editor.selection.kind === 'player' &&
+		Array.isArray(anim.clipIndices) && anim.clipIndices.length > 0
+		? anim.clipIndices
+		: null;
 
 	if (acts) {
-		if (previewPlayer && anim.clipIndex != null) {
+		if (previewClips) {
 			acts.forEach((action, index) => {
-				action.setEffectiveWeight(index === anim.clipIndex ? 1 : 0);
+				action.setEffectiveWeight(previewClips.indexOf(index) !== -1 ? 1 : 0);
 			});
-		} else if (walking) {
-			acts[1].setEffectiveWeight(0);
-			acts[2].setEffectiveWeight(1);
 		} else {
-			acts[1].setEffectiveWeight(1);
-			acts[2].setEffectiveWeight(0);
-		}
-		if (!previewPlayer) {
+			if (walking) {
+				acts[1].setEffectiveWeight(0);
+				acts[2].setEffectiveWeight(1);
+			} else {
+				acts[1].setEffectiveWeight(1);
+				acts[2].setEffectiveWeight(0);
+			}
 			acts[3].setEffectiveWeight(crouching ? 1 : 0);
 		}
 	}
 	let mixerUpdateDelta = clock.getDelta();
-	if (mixer) {
-		mixer.timeScale = previewPlayer && anim && !anim.playing ? 0 : 1;
-		mixer.update(mixerUpdateDelta);
-	}
+	if (mixer) mixer.update(mixerUpdateDelta);
 };
 
 module.exports = {

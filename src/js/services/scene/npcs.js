@@ -76,26 +76,32 @@ const refresh = ({scene, guards, state}) => {
 			guard.model.rotation.y = gameGuard.rotation;
 			
 			const anim = state.editor && state.editor.anim;
-			const previewThis = anim && state.editor.selection &&
+			const previewClips = anim && state.editor.selection &&
 				state.editor.selection.kind === 'guard' &&
-				state.editor.selection.guardId === guard.model.guardId;
+				state.editor.selection.guardId === guard.model.guardId &&
+				Array.isArray(anim.clipIndices) && anim.clipIndices.length > 0
+				? anim.clipIndices
+				: null;
 
-			if (previewThis && anim.clipIndex != null) {
+			const actionPaused = !!(anim && anim.paused &&
+				state.editor.selection &&
+				state.editor.selection.kind === 'guard' &&
+				state.editor.selection.guardId === guard.model.guardId);
+
+			if (previewClips) {
 				guard.acts.forEach((action, i) => {
-					action.setEffectiveWeight(i === anim.clipIndex ? 1 : 0);
+					action.setEffectiveWeight(previewClips.indexOf(i) !== -1 ? 1 : 0);
 				});
-			} else if (gameGuard.mode === 'walk') {
-				guard.acts[1].setEffectiveWeight(1);
-				guard.acts[0].setEffectiveWeight(0);
-			} else {
+			} else if (actionPaused || gameGuard.mode !== 'walk') {
+				// Paused mid-patrol: idle pose while frozen (unless clips overridden)
 				guard.acts[1].setEffectiveWeight(0);
 				guard.acts[0].setEffectiveWeight(1);
+			} else {
+				guard.acts[1].setEffectiveWeight(1);
+				guard.acts[0].setEffectiveWeight(0);
 			}
 
-			if (guard.mixer) {
-				guard.mixer.timeScale = previewThis && anim && !anim.playing ? 0 : 1;
-				guard.mixer.update(mixerUpdateDelta);
-			}
+			if (guard.mixer) guard.mixer.update(mixerUpdateDelta);
 		});
 	}
 	

@@ -93,7 +93,7 @@ module.exports = ({state, actions}) => form('.controls', [
 						'fa-square-o': state.camera.view !== 'first'
 					}
 				}),
-				` first-person (V) — ${state.camera.view || 'hybrid'}`
+				` first-person — ${state.camera.view || 'hybrid'}`
 			]),
 			div('.toggle', {
 				on: {click: () => actions.toggleOrbitMode()}
@@ -104,7 +104,7 @@ module.exports = ({state, actions}) => form('.controls', [
 						'fa-square-o': state.camera.mode !== 'orbit'
 					}
 				}),
-				` orbit (O) — ${state.camera.mode || 'follow'}`
+				` orbit — ${state.camera.mode || 'follow'}`
 			]),
 			div('.toggle', {
 				on: {click: () => actions.toggle(['controls', 'mouseLook'])}
@@ -115,7 +115,7 @@ module.exports = ({state, actions}) => form('.controls', [
 						'fa-square-o': !state.controls.mouseLook
 					}
 				}),
-				' mouse-look without drag (L)'
+				' mouse-look without drag'
 			]),
 			parseFields({
 				distance: state.camera.distance,
@@ -168,7 +168,7 @@ module.exports = ({state, actions}) => form('.controls', [
 					'fa-square-o': !(state.editor && state.editor.enabled)
 				}
 			}),
-			' edit mode (E) — click to select'
+			' edit mode — click to select'
 		]),
 		state.editor && state.editor.enabled
 			? div(state.editor.selection
@@ -206,6 +206,33 @@ module.exports = ({state, actions}) => form('.controls', [
 				}
 			}
 		}, 'Load Procedural Level')
+	)),
+	fieldset([].concat(
+		legend({
+			on: {
+				click: () => actions.toggle(['controls', 'hotkeys'])
+			}
+		}, [
+			i('.fa', {
+				class: {
+					'fa-minus-square-o': state.controls.hotkeys,
+					'fa-plus-square-o': !state.controls.hotkeys
+				}
+			}),
+			'Hotkeys'
+		]),
+		state.controls.hotkeys ? [
+			div('WASD / arrows — move'),
+			div('Shift — run'),
+			div('C — crouch'),
+			div('M — minimap'),
+			div('V — first-person'),
+			div('L — mouse-look (no drag)'),
+			div('O — free orbit'),
+			div('E — edit mode'),
+			div('Drag — look / orbit'),
+			div('Scroll — zoom')
+		] : []
 	))
 ]);
 

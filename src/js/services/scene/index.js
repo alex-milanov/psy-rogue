@@ -231,13 +231,13 @@ let hook = ({state$, actions, minimap}) => {
 				});
 				let anim = null;
 				if (selection && selection.kind === 'player' && sceneState.clips) {
-					anim = {clips: sceneState.clips, clipIndex: 0, playing: true};
+					anim = {clips: sceneState.clips, clipIndices: [], paused: true};
 				} else if (selection && selection.kind === 'guard' && sceneState.guards) {
 					const guard = sceneState.guards.find(g =>
 						g.model && g.model.guardId === selection.guardId
 					);
 					if (guard && guard.clips) {
-						anim = {clips: guard.clips, clipIndex: 0, playing: true};
+						anim = {clips: guard.clips, clipIndices: [], paused: true};
 					}
 				}
 				actions.selectObject(selection, anim);
